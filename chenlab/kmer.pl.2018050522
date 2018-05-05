@@ -1,0 +1,40 @@
+#!/usr/bin/perl -w
+#
+#
+#
+
+my $kmer = 9;
+open MM10, "/home/lisun/data1/fusion_cell/HTSeq/constit/downstream/mm10_TSS_range.fa";
+open RN6,  "/home/lisun/data1/fusion_cell/HTSeq/constit/downstream/rn6_TSS_range.fa";
+
+
+open MKMER, ">mm10_$kmer\_mer.txt";
+open RKMER, ">rn6_$kmer\_mer.txt";
+
+my %mm10;
+while(<MM10>){
+	chomp;
+	my (undef,$seq) = split;
+	for(my $i=0;$i < length ($seq)-$kmer+1;$i++){
+		$mm10{substr($seq,$i,$kmer)}++;
+	}
+}
+
+foreach my $key (sort{$mm10{$b} <=>$mm10{$a}} keys %mm10){
+	print MKMER "$key\t$mm10{$key}\n";
+}
+
+
+
+my %rn6;
+while(<RN6>){
+	chomp;
+	my (undef,$seq) = split;
+	for(my $i=0;$i < length ($seq)-$kmer+1;$i++){
+		$rn6{substr($seq,$i,$kmer)}++;
+	}
+}
+
+foreach my $key (sort{$rn6{$b} <=>$rn6{$a}} keys %rn6){
+	print RKMER "$key\t$rn6{$key}\n";
+}

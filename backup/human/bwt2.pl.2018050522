@@ -1,0 +1,96 @@
+#!/user/bin/perl
+use Time::HiRes qw/time/;
+my $t1 = time();
+open FILE1, '/2_disk/longyk/human/lastColumn2.txt';
+open FILE2, '/2_disk/longyk/human/location2.txt';
+open BASENUM, '/2_disk/longyk/human/baseNum2.txt';
+my $L = <FILE1>;  ###this is the whole chromsome without N and atcg;
+my $loca = <FILE2>;###this is fm index1.
+my $baseinfo = <BASENUM>;  ###this is the base information.
+my @location = split (/\t/, $loca);
+my @baseInfo = split /\t/, $baseinfo;
+close FILE1;
+close FILE2,
+close BASENUM;
+print "$location[0]\n@baseInfo\n";
+my $t2 = time();
+$time = $t2-$t1;
+print "time1： $time\n";
+
+###这里是计算Tally，分别计算ACGT。
+$length = length $L;  ###因為初始無效，多一個$符號。
+@A = (0) x $length;
+@C = (0) x $length;
+@G = (0) x $length;
+@T = (0) x $length;
+open TALLY, '/2_disk/longyk/human/tally2.txt';
+$i=0;
+while(<TALLY>){
+    my @tally = split /\t/;
+    $A[$i] = $tally[0];
+    $C[$i] = $tally[1];
+    $G[$i] = $tally[2];
+    $T[$i] = $tally[3];
+    $i++;
+}
+close TALLY;
+my $t3 = time();
+$time = $t3-$t2;
+print "time2: $time\n\n";
+
+###here test yor segnment AGGTTACG
+$t;
+while($t ne "N"){
+    print "ENTER:\n";
+    $t = <>;
+    my $t4 = time();
+    chomp $t;
+    @B = &bwt($t);
+    print "@B";
+    my $t5 = time();
+    $time = $t5-$t4;
+    print "time3: $time\n";
+}
+
+
+
+
+
+sub bwt {
+    my $int  = 0;
+    my $fin  = $baseInfo[5];
+    my $test = $_[0];
+    my @LL   = ();
+    my $frac = 64;
+    for ( my $i = 1 ; $i <= length $test ; $i++ ) {
+	my $next  = substr( $test, -$i,  1 );
+	my $index1 = $int % $frac;
+	if($index1>= $frac/2){
+	    my $scan = substr($L,$int+1,$frac-$index1);
+	    my $count = ( $scan =~ s/$next/$next/g); 
+	    $int = $$next[$int/$frac+0.5] - $count;
+	}
+	else{
+	    my $scan = substr($L,$int-$index1+1,$index1);
+	    my $count = ( $scan =~ s/$next/$next/g);
+	    $int = $$next[$int/$frac] + $count; 
+	}
+	 
+	my $index2 = $fin % $frac;
+	if($index2>= $frac/2){
+	    my $scan = substr($L,$fin+1,$frac-$index2);
+	    my $count = ( $scan =~ s/$next/$next/g); 
+	    $fin = $$next[$fin/$frac+0.5] - $count;
+	}
+	else{
+	    my $scan = substr($L,$fin-$index2+1,$index2);
+	    my $count = ( $scan =~ s/$next/$next/g);
+	    $fin = $$next[$fin/$frac] + $count; 
+	} 
+    }  ##通过循环$fin - $int的值不断减少，最后在一定范围内。
+    print "$int\t$fin\n";  ###what's wrong??? the int is minus 1 than the final.
+    foreach my $iii (($int+1) .. $fin ) {
+	push( @LL, $location[$iii]+1 );  ####這裡的位置加上1變成1-based
+    }
+    return @LL;
+}

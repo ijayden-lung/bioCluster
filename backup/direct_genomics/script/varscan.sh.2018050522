@@ -1,0 +1,9 @@
+for i in ../mpileup/*mpileup
+
+do
+
+echo $i
+
+java -jar /1/longyk/VarScan.v2.3.9.jar mpileup2cns $i --min-coverage 30 --min-reads2 2 --min-var-freq 0.003   --p-value 0.01 --output-vcf 1 --variants >${i%.*}.vcf
+
+done

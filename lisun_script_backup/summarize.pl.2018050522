@@ -1,0 +1,66 @@
+#!/usr/bin/perl -w
+
+my ($file) = @ARGV;
+open FILE, $file;
+print "$file\n";
+#open FILE, "Combine_0.005_0.3.tsv";
+my $header = <FILE>;
+
+my @category = qw /CIS TRANS C_PLUS_T C_MINUS_T COMPENSATORY T_MINUS_C CONSERVED AMBIGUOUS/;
+my @type = qw /Conserved Mouse_dominant Rat_dominant Overdominant Underdominant Additive/;
+my @hyb = qw /RM MR MOCK/;
+
+my %rm;
+my %mr;
+my %mock;
+my @table;
+my @sum_typ;
+my @sum_cat;
+my @total;
+
+####INITIALIZE
+foreach my $cat (@category){
+	foreach my $typ (@type){
+		for (my $i=0;$i<@hyb;$i++){
+			$table[$i]->{$typ}->{$cat}=0;
+		}
+		$rm{$typ}->{$cat}=0;		
+		$mr{$typ}->{$cat}=0;		
+		$mock{$typ}->{$cat}=0;		
+	}
+}
+
+
+
+while(<FILE>){
+	chomp;
+	my @data = split;
+	for(my $i=0;$i<@hyb;$i++){
+		$table[$i]->{$data[$i*2-6]}->{$data[$i*2-5]}++;
+		$sum_typ[$i]->{$data[$i*2-6]}++;
+		$sum_cat[$i]->{$data[$i*2-5]}++;
+		$total[$i]++;
+	}
+	$rm{$data[-6]}->{$data[-5]}++;
+	$mr{$data[-4]}->{$data[-3]}++;
+	$rm{$data[-2]}->{$data[-1]}++;
+}
+
+
+
+for(my $i=0;$i<@hyb;$i++){
+	print "Summarize for $hyb[$i]";
+	foreach my $typ (@type){
+		print "\t$typ";
+	}
+	print "\n";
+	foreach my $cat (@category){
+		print "$cat";
+		foreach my $typ (@type){
+			print "\t",$table[$i]->{$typ}->{$cat};
+		}
+		print "\n";
+		#print "\t$sum_cat[$i]->{$cat}\n";
+	}
+	print "\n\n";
+}

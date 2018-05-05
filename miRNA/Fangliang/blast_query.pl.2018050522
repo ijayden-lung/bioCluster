@@ -1,0 +1,9 @@
+#!/usr/bin/perl -w
+#
+open FILE, 'NonMiR.txt';
+open OUT,'>input.fa';
+while(<FILE>){
+	chomp;
+	my ($seq) = split;
+	print OUT ">$seq\n$seq\n";
+}

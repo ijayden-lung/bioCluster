@@ -1,0 +1,28 @@
+#!/home/lisun/prog/R-3.3.3/bin/Rscript
+library(qvalue)
+
+pdf("Qobj_esc_pvalue.pdf")
+table <- read.csv("./table_pval_norm_mefVSesc.rc", sep="\t", header=T)
+qobj <- qvalue(p = table$Esc_Bin_pvalues)
+plot(qobj)
+Esc_Bin_qvalues <- qobj$qvalues
+table$Esc_Bin_qvalues<-as.numeric(Esc_Bin_qvalues)
+hist(table$Esc_Bin_qvalues, breaks=1000, col="skyblue", border="slateblue", main="Esc_Bin_qvalues")
+
+qobj <- qvalue(p = table$Mef_Bin_pvalues)
+
+plot(qobj)
+Mef_Bin_qvalues <- qobj$qvalues
+table$Mef_Bin_qvalues<-as.numeric(Mef_Bin_qvalues)
+hist(table$Mef_Bin_qvalues, breaks=1000, col="skyblue", border="slateblue", main="Mef_Bin_qvalues")
+
+qobj <- qvalue(p = table$FET_pvalues)
+plot(qobj)
+FET_qvalues <- qobj$qvalues
+table$FET_qvalues<-as.numeric(FET_qvalues)
+hist(table$FET_qvalues, breaks=1000, col="skyblue", border="slateblue", main="FET_qvalues")
+
+write.table(table,"table_qvalue_pval_norm_mefVSesc.rc",quote = FALSE,row.names=FALSE,col.names=TRUE,sep="\t")
+dev.off()
+
+

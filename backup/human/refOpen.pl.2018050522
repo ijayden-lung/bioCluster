@@ -1,0 +1,12 @@
+#!/usr/bin/perl                                                                                                                                                                                
+use Time::HiRes qw/time/;
+print "Enter\t";
+$c = <>;
+$t1 = time();
+$line = int($c/50);
+open REF, "/2_disk/longyk/human/chr21/$line";
+print <REF>;
+$t2 = time();
+$t = $t2-$t1;
+print "$t\n";
+

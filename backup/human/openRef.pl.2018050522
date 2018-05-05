@@ -1,0 +1,18 @@
+#!/usr/bin/perl                                                                                                                                                                                
+use Time::HiRes qw/time/;
+$chrom = "chr21";
+$t0 = time();
+open REF, '/2_disk/longyk/'.$chrom.'.fa';
+$A = <REF>;
+$t1 = time();
+$time = $t1-$t0;
+print "time1: $time\n";
+print "Enter\n";
+$a = <>;
+$t1 = time();
+$b = substr($A, $a,50);
+$t2 = time();
+$t = $t2-$t1;
+print "$t\n";
+print "$b\n";
+

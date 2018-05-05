@@ -1,0 +1,27 @@
+#!/home/lisun/prog/R/bin/Rscript
+library(DESeq)
+
+###FOR rn6
+pasillaCountTable = read.table("/data1/lyk/four_mis/ASSIGN/rn6_gene_count_remove.csv", header=TRUE, row.names=1 ,sep=",")
+pasillaDesign = data.frame(row.names = colnames( pasillaCountTable ),condition = c("mock","hybird","rat","hybrid"),libType = c("rat","rat","rat","rat"))
+pairedSamples = pasillaDesign$libType == "rat"
+countTable = pasillaCountTable[ , pairedSamples ]
+condition = pasillaDesign$condition[ pairedSamples ]
+cds = newCountDataSet( countTable, condition )
+cds = estimateSizeFactors( cds )
+sizeFactors( cds )
+cds = counts( cds, normalized=TRUE)
+write.table(cds, "/data1/lyk/four_mis/ASSIGN/rn6_norm_gene_count.tsv",quote=FALSE,row.names=TRUE,sep="\t")
+
+
+###FOR mm10
+pasillaCountTable = read.table("/data1/lyk/four_mis/ASSIGN/mm10_gene_count_remove.csv", header=TRUE, row.names=1 ,sep=",")
+pasillaDesign = data.frame(row.names = colnames( pasillaCountTable ),condition = c("mouse","mock","hybrid","hybrid"),libType = c("mouse","mouse","mouse","mouse"))
+pairedSamples = pasillaDesign$libType == "mouse"
+countTable = pasillaCountTable[ , pairedSamples ]
+condition = pasillaDesign$condition[ pairedSamples ]
+cds = newCountDataSet( countTable, condition )
+cds = estimateSizeFactors( cds )
+sizeFactors( cds )
+cds = counts( cds, normalized=TRUE)
+write.table(cds, "/data1/lyk/four_mis/ASSIGN/mm10_norm_gene_count.tsv",quote=FALSE,row.names=TRUE,sep="\t")

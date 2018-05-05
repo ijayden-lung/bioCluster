@@ -1,0 +1,104 @@
+#!/usr/bin/perl -w
+
+open HOTSPOT, "/1/longyk/direct_genomics/cosmic_hotspot_2751.txt";
+my %hash;
+while(<HOTSPOT>){
+	chomp;
+	my ($chr, $pos,$ref,$alt,$cos) = split /\t/,$_;
+	$hash{$cos} = "$ref\/$alt";
+}
+
+
+foreach my $file (glob "/1/longyk/direct_genomics/fastq/annovar_out_v2/*txt"){
+	my $pos1 = rindex($file,"/");
+	my $pos2 = index($file,".");
+	my $new = substr($file,0,$pos1+1)."final_result".substr($file,$pos1,$pos2-$pos1)."_cosmic.txt";
+	my $new2 = substr($file,0,$pos1+1)."final_result".substr($file,$pos1,$pos2-$pos1)."_undef.txt";
+
+	my $vcfFile = substr($file,0,$pos1).substr($file,$pos1,$pos2-$pos1).".vcf";
+	&func($file,$new,$new2,substr($file,$pos1+1,$pos2-$pos1-1),$vcfFile);
+	
+}
+
+
+sub func{
+
+	my ($total, $cosnum,$htnum, $lungnum) = 0;
+	open FILE, $_[0];
+	open NEW, '>'.$_[1];
+	open NEW2, '>'.$_[2];
+	open VCF, $_[4];
+	<FILE>;
+	##### TO Remove the note IN the VCF.
+	my $i = 0;
+	while(<VCF>){
+		$i++;
+		last if ($i>=24);
+	}
+
+
+	print NEW  "Gene Name\tPosition\tFunction\tGenome Mutation\tFunc. Change\tZygosity\tCosmic ID\tHotspot\tFrequency\t1000g_all\t1000g_eas\tSNP138\n";
+	print NEW2 "Gene Name\tPosition\tFunction\tGenome Mutation\tFunc. Change\tZygosity\tFrequency\t1000g_all\t1000g_eas\tSNP138\n";
+
+	while(<FILE>){
+
+		chomp;
+		my ($chr,$start,undef,$ref,$alt,$func,$name,$detail,$exonfun,$aachange,$cosmic79,$all,$eas,$snp,$alle,undef,$coverage) = split /\t/;
+		my $pos = "$chr\:$start";
+		my $bchange = "$ref->$alt";
+		my $aa;
+		if ($aachange ne "\."){
+			my @NM = split /,/,$aachange;
+			foreach my $ele (@NM){
+				my @info = split /:/, $ele;
+				$aa .= "$info[1]:$info[2]:$info[3]:$info[4],";
+			}
+			$aa = substr ($aa,0, -1);
+		}
+		else{
+			$aa = $detail;
+		}
+
+
+		my $vcf = <VCF>;
+		chomp $vcf;
+		my ($tem1) = split /\%/,$vcf;
+		my @tem2 = split /:/, $tem1;
+		my $fre = $tem2[-1]."\%";
+
+		if($cosmic79 ne "\."){
+			my (undef,$cos) = split /[=;]/, $cosmic79;
+			my @cosNum = split /,/, $cos;
+			my $hotspot;
+			foreach my $ele (@cosNum){
+				if(exists $hash{$ele}){
+					$hotspot = "yes";
+					$htnum++;
+					last;
+				}
+				else{
+					$hotspot = "no";
+				}
+			}
+
+			if($cosmic79 =~ /lung/){
+				$cos =  "* ".$cos;
+				$lungnum++;
+			}
+
+
+			print NEW "$name\t$pos\t$func\t$bchange\t$aa\t$alle\t$cos\t$hotspot\t$fre\t$all\t$eas\t$snp\n";
+			$cosnum++;
+		}
+		else{
+			print NEW2 "$name\t$pos\t$func\t$bchange\t$aa\t$alle\t$fre\t$all\t$eas\t$snp\n";
+			
+		}
+		$total++;
+	}
+	printf "%-15s%-6d%-6d%-6d%-6d\n",$_[3],$total,$cosnum,$lungnum,$htnum;
+	close FILE;
+	close NEW;
+	close NEW2;
+
+}

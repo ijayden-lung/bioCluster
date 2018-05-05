@@ -1,0 +1,75 @@
+#!/usr/bin/perl -w
+open FILE, "cd44_refSeq.gtf";
+my %hash;
+my $i=0;
+while(<FILE>){
+	chomp;
+	my ($exon,$str,$end) = (split)[2..4];
+	if($exon eq "exon"){
+		if(!exists $hash{"$str\t$end"}){
+			$i++;
+			$hash{"$str\t$end"} = "exon$i";
+		}
+	}
+}
+
+
+my @sample = qw/high-1 high-2 low-1 low-2/;
+my %junc;
+for(my $i=0;$i<@sample;$i++){
+	open BAM, "samtools view -q 255 WIG/$sample[$i]\_cd44.sorted.bam | awk '(\$6 ~ \"N\" && \$6 !~ \"S\" && \$6 !~ \"D\" && \$6 !~ \"I\" && (\$2 == 83 || \$2 == 163)){print \$4,\$6}' | ";
+	while(<BAM>){
+		my ($str,$CIGAR) = split;
+		my ($exon1,$exon2,$exon3,$str2,$str3,$end1,$end2,$end3);
+		my @info = split /N|M/,$CIGAR;
+		if(@info == 3){
+			$end1 = $str+$info[0]-1;  ####
+			$str2 = $end1+$info[1]+1;
+			$junc{"$end1-$str2"}->[$i]++;
+
+		}
+		elsif(@info == 5){
+			$end1 = $str+$info[0]-1;
+			$str2 = $end1+$info[1]+1;
+			$end2 = $str2+$info[2]-1;
+			$str3 = $end2+$info[3]+1;
+			$junc{"$end1-$str2"}->[$i]++;
+			$junc{"$end2-$str3"}->[$i]++;
+		}
+
+	}
+
+}
+
+open SPL,">Splicing.tsv";
+print SPL "Junction\thigh_1\thigh_2\tlow_1\tlow_2\n";
+foreach my $key (sort (keys %junc)){
+	print SPL "$key\t";
+	if(defined $junc{$key}->[0]){
+		print SPL "$junc{$key}->[0]\t";
+	}
+	else{
+		print SPL "0\t";
+	}
+
+	if(defined $junc{$key}->[1]){
+		print SPL "$junc{$key}->[1]\t";
+	}
+	else{
+		print SPL "0\t";
+	}
+
+	if(defined $junc{$key}->[2]){
+		print SPL "$junc{$key}->[2]\t";
+	}
+	else{
+		print SPL "0\t";
+	}
+
+	if(defined $junc{$key}->[3]){
+		print SPL "$junc{$key}->[3]\n";
+	}
+	else{
+		print SPL "0\n";
+	}
+}

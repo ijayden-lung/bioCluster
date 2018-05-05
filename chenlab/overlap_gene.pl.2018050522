@@ -1,0 +1,53 @@
+#!/usr/bin/perl -w
+
+open MT, "/home/lisun/data1/fusion_cell/HTSeq/rn6/downstream/MEFvsMEF.mt.dn.tsv";
+open RT, "/home/lisun/data1/fusion_cell/HTSeq/rn6/downstream/MEFvsMEF.rt.dn.tsv";
+open MRT1, "/home/lisun/data1/fusion_cell/HTSeq/rn6/downstream/MEFvsMEF.mrt.1.dn.tsv";
+open MRT5, "/home/lisun/data1/fusion_cell/HTSeq/rn6/downstream/MEFvsMEF.mrt.0.5.dn.tsv";
+
+
+my %hash;
+<MT>;
+while(<MT>){
+	chomp;
+	my ($gene) = split;
+	$hash{$gene} = "";
+}
+
+my %hash1;
+<RT>;
+while(<RT>){
+	chomp;
+	my ($gene) = split;
+	if(exists $hash{$gene}){
+		$hash1{$gene} = "";
+	}
+}
+
+
+my %hash2;
+<MRT1>;
+while(<MRT1>){
+	chomp;
+	my ($gene) = split;
+	if(exists $hash1{$gene}){
+		$hash2{$gene} = "";
+	}
+}
+
+
+my %hash3;
+<MRT5>;
+while(<MRT5>){
+	chomp;
+	my ($gene) = split;
+	if(exists $hash2{$gene}){
+		$hash3{$gene} = "";
+	}
+}
+
+open FILE, ">dn_rn6_overlap.txt";
+foreach my $key (keys %hash3){
+	$key =~ s/\"|\;//g;
+	print FILE "$key\n";
+}

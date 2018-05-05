@@ -1,0 +1,126 @@
+#!/usr/bin/perl -w
+use List::Util qw(first max maxstr min minstr reduce shuffle sum);
+
+my ($mouCount,$ratCount,$mouNor,$ratNor) = @ARGV;
+
+
+
+open MOU, "$mouCount";
+my $mouHeader = <MOU>;
+chomp $mouHeader;
+my @mouHeader = split /\t/,$mouHeader;
+my @mouse;
+my $i=0;
+while(<MOU>){
+	chomp;
+	my @data = split;
+	for($j=0;$j<$#data;$j++){
+		$mouse[$j]->[$i] = $data[$j+1];
+	}
+	$i++;
+}
+
+my @mou_sum;
+foreach my $ele1 (@mouse){
+	my $sum = 0;
+	foreach my $ele2 (@$ele1){
+		$sum += $ele2;
+	}
+	push @mou_sum, $sum;
+}
+
+
+open RAT, "$ratCount";
+my $ratHeader = <RAT>;
+chomp $ratHeader;
+my @ratHeader = split /\t/,$ratHeader;
+my @rat;
+$i=0;
+while(<RAT>){
+	chomp;
+	my @data = split;
+	for($j=0;$j<$#data;$j++){
+		$rat[$j]->[$i] = $data[$j+1];
+	}
+	$i++;
+}
+
+my @rat_sum;
+foreach my $ele1 (@rat){
+	my $sum = 0;
+	foreach my $ele2 (@$ele1){
+		$sum += $ele2;
+	}
+	push @rat_sum, $sum;
+}
+
+my $average = (sum(@mou_sum)+sum(@rat_sum))/(@mou_sum+@rat_sum);
+my @mou_sf;
+my @rat_sf;
+for(my $i=0;$i<@mou_sum;$i++){
+	$mou_sf[$i] = $mou_sum[$i]/$average;
+}
+for(my $i=0;$i<@rat_sum;$i++){
+	$rat_sf[$i] = $rat_sum[$i]/$average;
+}
+
+print "@mou_sf\t@rat_sf\n";
+
+
+open MOU, "$mouCount";
+<MOU>;
+my %mouse;
+while(<MOU>){
+	chomp;
+	my @data = split;
+	for(my $i=0;$i<$#mouHeader;$i++){
+		$mouse{$data[0]}->{$mouHeader[$i+1]} = $data[$i+1]/$mou_sf[$i];
+	}
+}
+
+
+
+
+open RAT, "$ratCount";
+<RAT>;
+my %rat;
+while(<RAT>){
+	chomp;
+	my @data = split;
+	for(my $i=0;$i<$#ratHeader;$i++){
+		$rat{$data[0]}->{$ratHeader[$i+1]} = $data[$i+1]/$rat_sf[$i];
+	}
+}
+
+open OUT1, ">","$mouNor";
+print OUT1 "$mouHeader\n";
+while(my ($key,$val) = each %mouse){
+	my $sum = 0;
+	for(my $i=1;$i<@mouHeader;$i++){
+		$sum += $val->{$mouHeader[$i]};
+	}
+	if($sum >500){
+		print OUT1 "$key";
+		for(my $i=1;$i<@mouHeader;$i++){
+			print OUT1 "\t$val->{$mouHeader[$i]}";
+		}
+		print OUT1 "\n";
+	}
+}
+
+
+open OUT2, ">","$ratNor";
+print OUT2 "$ratHeader\n";
+while(my ($key,$val) = each %rat){
+	my $sum = 0;
+	for(my $i=1;$i<@ratHeader;$i++){
+		$sum += $val->{$ratHeader[$i]};
+	}
+	if($sum >500){
+		print OUT2 "$key";
+		for(my $i=1;$i<@ratHeader;$i++){
+			print OUT2 "\t$val->{$ratHeader[$i]}";
+		}
+		print OUT2 "\n";
+	}
+}

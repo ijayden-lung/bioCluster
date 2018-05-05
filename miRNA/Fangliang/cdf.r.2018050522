@@ -1,0 +1,21 @@
+#!/usr/bin/env Rscript
+library(grid)
+library(ggplot2)
+args<-commandArgs(T)
+data1 = read.table('OnMiR.txt',header=TRUE,row.names=1)
+data2 = read.table('NonMiR.txt',header=TRUE,row.names=1)
+pdf('CDF_miRNA100.pdf')
+
+grid.newpage()
+pushViewport(viewport(layout = grid.layout(2,1)))
+vplayout <- function(x, y) viewport(layout.pos.row = x, layout.pos.col = y)
+df <- data.frame(x = c(data1$SH1,data1$SH2,data1$SL1,data1$SL2),g = gl(4,labels =c('MapSH1','MapSH2','MapSL1','MapSL2'), length(data1$SH1)))
+a<-ggplot(df, aes(log10(x),colour = g))+stat_ecdf(geom = "step",pad=FALSE)+scale_x_continuous("log10 Seq ReadCount",limits=c(0,5))+scale_y_continuous("Cumulative percentage",breaks=0.1*(0:10),labels=scales::percent)
+
+df <- data.frame(x = c(data2$SH1,data2$SH2,data2$SL1,data2$SL2),g = gl(4,labels =c('UnMapSH1','UnMapSH2','UnMapSL1','UnMapSL2'), length(data2$SH1)))
+c<-ggplot(df, aes(log10(x),colour = g))+stat_ecdf(geom = "step",pad=FALSE)+scale_x_continuous("log10 Seq ReadCount",limits=c(0,5))+scale_y_continuous("Cumulative percentage",breaks=0.1*(0:10),labels=scales::percent)
+
+
+print(a, vp = vplayout(1,1))
+print(c, vp = vplayout(2,1))
+

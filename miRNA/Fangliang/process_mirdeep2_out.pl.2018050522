@@ -1,0 +1,30 @@
+#!/usr/bin/perl -w
+
+my @sample = qw/SH1 SH2 SL1-1 SL2-1/;
+my %hash;
+foreach my $file (glob "OUT/*/miRNAs_expressed_all_samples*"){
+	open FILE,$file;
+	<FILE>;
+	my (undef,$sam) = split /\//,$file;
+	while(<FILE>){
+		chomp;
+		my ($mature,$exp,$precursor) = split /\t/;
+		#$hash{$precursor}->{$sam} += $exp; ###Only Count the precursor
+		$hash{"$mature\-\>$precursor"}->{$sam} += $exp;
+	}
+}
+
+open OUT,'>Exp_miRNA.tsv';
+print OUT "miRNA\tSH1\tSH2\tSL1\tSL2\n";
+while(my ($key,$val) = each %hash){
+	print OUT "$key";
+	foreach my $sam (@sample){
+		if(exists $val->{$sam}){
+			print OUT "\t$val->{$sam}";
+		}
+		else{
+			print OUT "\t0";
+		}
+	}
+	print OUT "\n";
+}

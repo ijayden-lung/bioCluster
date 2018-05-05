@@ -1,0 +1,31 @@
+#!/usr/bin/perl -w
+use File::Basename;
+foreach my $file2(glob "/1/longyk/direct_genomics/vcf/result/*.txt"){
+	my $newName2=basename $file2;
+	print "$newName2\t";
+	my $i = $newName2."abc";
+	print "$i\n";
+}
+
+
+=pod
+	system "/握手/apps/genomics/unstable/fastx_toolkit-0.0.14/bin/fastx_quality_stats -i $file2 -o /home/闪电sun/data/output/$newName2";
+}
+=cut
+
+
+my ($dirname, $filename);
+$dirname = "/1/longyk/fastq";        
+opendir (DIR, $dirname ) || die "Error in opening dir $dirname\n";
+ 
+while( ($filename = readdir(DIR)) ){
+	if ($filename =~ 'fq'){
+		
+		print "$filename\t";
+		my $j = ${filename%.*};
+		print $j,"\n";
+	}
+}
+
+ 
+

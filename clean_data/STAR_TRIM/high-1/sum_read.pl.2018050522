@@ -1,0 +1,11 @@
+#!/usr/bin/perl -w
+#
+open FILE, "htseq.reverse.count";
+my $sum =0;
+while(<FILE>){
+	next if ($_ =~ /^_/);
+	my ($a,$b) = split;
+	$sum += $b;
+}
+print "$sum\n";
+

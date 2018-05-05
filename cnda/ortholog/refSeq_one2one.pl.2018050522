@@ -1,0 +1,40 @@
+#!/usr/bin/perl -w
+
+open FILE, "homologene.data";
+open FILE2,">mouse2rat_refSeq.ort";
+my $line = <FILE>;
+chomp $line;
+my ($hid,$tix,undef,$gene) = split /\t/,$line;
+my $mouse = 0;
+my $rat   = 0;
+while(<FILE>){
+	chomp;
+	my ($nhid,$ntix,undef,$ngene) = split /\t/;
+	if($nhid eq $hid){
+		if($ntix eq "10090"){
+			$mouse++;
+			$gene1 = $ngene;
+		}
+		elsif($ntix eq "10116"){
+			$rat++;
+			$gene2 = $ngene;
+		}
+	}
+	else{
+
+		if($mouse == 1 && $rat ==1){
+			print FILE2 "$gene1\t$gene2\n";
+		}
+		$mouse = 0;
+		$rat   = 0;
+		if($ntix eq "10090"){
+			$mouse++;
+			$gene1 = $ngene;
+		}
+		elsif($ntix eq "10116"){
+			$rat++;
+			$gene2 = $gene;
+		}
+	}
+	$hid = $nhid;
+}

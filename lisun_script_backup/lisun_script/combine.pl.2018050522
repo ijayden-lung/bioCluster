@@ -1,0 +1,109 @@
+#!/usr/bin/perl -w
+use Statistics::R;
+
+my ($qvalue,$threshold) = @ARGV;
+#open CIS,$cis or die "$!";
+
+$dom = "table_category_QC_filter_dominant_$threshold.tsv";
+$alle="table_QC_filter_compare_allele.tsv";
+$out = "Combine_$qvalue\_$threshold.tsv";
+
+open DOM,$dom or die "$!";
+my $header = <DOM>;
+open OUT,'>',$out or die "$!";
+open ALLE,$alle;
+$header = <ALLE>;
+chomp $header;
+print OUT "$header\tRM_Mouse\tRM_Rat\tMR_Mouse\tMR_Rat\tMOCK_Mouse\tMOCK_Rat\tType_RM\tCategory_RM\tType_MR\tCategory_MR\tType_MOCK\tCategory_MOCK\n";
+
+
+my @hyb = qw /RM MR MOCK/;
+my @category;
+for(my $i=0;$i<@hyb;$i++){
+	open CIS,"Cis_reg_$qvalue\_$hyb[$i].txt";
+	my $header = <CIS>;
+	while(<CIS>){
+		chomp;
+		my ($gene_id,$type) = (split)[0,-1];
+		$category[$i]->{$gene_id} = $type;
+	}
+}
+
+
+my @type;
+my @mouse;
+my @rat;
+while(<DOM>){
+	chomp;
+	my ($gene_id,@typ) = (split)[0,-3,-2,-1];
+	my @number       = (split)[2..7];
+	for(my $i=0;$i<@hyb;$i++){
+		$type[$i]->{$gene_id} = $typ[$i];
+		$mouse[$i]->{$gene_id} = $number[2*$i];
+		$rat[$i]->{$gene_id}   = $number[2*$i+1];
+	}
+}
+
+while(<ALLE>){
+	chomp;
+	my ($gene_id) = split;
+	print OUT "$_";
+	for(my $i=0;$i<@hyb;$i++){
+		print OUT "\t$mouse[$i]->{$gene_id}\t$rat[$i]->{$gene_id}";
+	}
+	for(my $i=0;$i<@hyb;$i++){
+		print OUT "\t$type[$i]->{$gene_id}\t$category[$i]->{$gene_id}";
+	}
+	print OUT "\n";
+
+}
+
+my $input = $out;
+my $fig1 = "plot_cis_mock.pdf";
+my $fig2 = "plot_cis_rm.pdf";
+my $fig3 = "plot_cis_mr.pdf";
+#my $fig3 = "plot_cis_mr.png";
+my $cmds = <<EOF;
+library(ggplot2)
+data <-read.table("$input",sep="\t",header=T)
+#reg<-lm(Par ~ MOCK,data=data)
+#summary(reg)
+
+#####Draw Separete Parental and Mixed Paretal
+#png(file="$fig1.png",width=640, height=480)
+pdf("$fig1",width=6,height=4)
+ggplot(data, aes(x = MOCK, y = Par,colour = Category_MOCK))+
+geom_point()+
+#geom_smooth(method = "lm", se=FALSE, colour="black", formula = y ~ x)+
+labs(x = "Log2 Mixed Parental(M/R)",y = "Log2 Separated Parental(M/R)")+
+theme(plot.title = element_text(size=20,colour = "black"),axis.title = element_text(size=15,colour = "black"),axis.text = element_text(size=12))+
+xlim(-9,9)+
+ylim(-9,9)
+dev.off()
+#####Draw Separate Parental and RM
+#png(file="$fig2",width=640, height=480)
+pdf("$fig2",width=6,height=4)
+ggplot(data, aes(x = RM, y = Par,colour=Category_RM))+
+geom_point()+
+#geom_smooth(method = "lm", se=FALSE, colour="black", formula = y ~ x)+
+labs(x = "Log2 Hybrid RM(M/R)",y = "Log2 Separated Parental(M/R)")+
+theme(axis.title = element_text(size=15,colour = "black"),axis.text = element_text(size=12))+
+xlim(-9,9)+
+ylim(-9,9)
+dev.off()
+
+#####Draw Separate Parental and MR
+#png(file="$fig3",width=640, height=480,res=45)
+pdf("$fig3",width=6,height=4)
+ggplot(data, aes(x = MR, y = Par,colour=Category_MR))+
+geom_point()+
+#geom_smooth(method = "lm", se=FALSE, colour="black", formula = y ~ x)+
+labs(x = "Log2 Hybrid MR(M/R)",y = "Log2 Separated Parental(M/R)")+
+theme(axis.title = element_text(size=15,colour = "black"),axis.text = element_text(size=12))+
+xlim(-9,9)+
+ylim(-9,9)
+dev.off()
+EOF
+my $R2 = Statistics::R->new();
+$out = $R2->run($cmds);
+print "STAT AFTER QC\n$out\n";

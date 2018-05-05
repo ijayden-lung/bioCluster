@@ -1,0 +1,14 @@
+#!/bin/bash
+#PBS -q batch
+#PBS -N fastqc
+#PBS -l nodes=1:ppn=1
+#PBS -j oe 
+cd /home/lyk/data1/clean_data/liver/
+for i in *1.fastq
+do
+	j=${i%1*}2.fastq
+	fastqc -t 8 -o Fastqc_out  $i $j
+done
+
+
+

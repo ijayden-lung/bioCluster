@@ -1,0 +1,32 @@
+#!/usr/bin/perl -w
+#
+#
+=pod
+open GENE, "/data1/lyk/clean_data/ALL_GENE_WNT_SIGNALING_Liang.txt";
+<GENE>;
+<GENE>;
+my $genelist = <GENE>;
+chomp $genelist;
+my @gene = split /\t/,$genelist;
+=cut
+my @gene;
+open GENE, "/data1/lyk/clean_data/top splicing genes.csv";
+<GENE>;
+while(<GENE>){
+	chomp;
+	my(undef,$gene) = split /,/;
+	push @gene, $gene;
+}
+
+
+open FILE, ">/data1/lyk/clean_data/top_gene_list";
+foreach my $gene (@gene){
+	open GTF, "awk '(\$3 == \"gene\" && \$14 ~ /\"$gene\"/){print}' IGNORECASE=1 /data1/lyk/cnda/ensembl/Homo_sapiens.GRCh38.88.gtf |";
+	my $i=0;
+	while(<GTF>){
+		print FILE $_;
+		$i++;
+	}
+	print "No:$gene\n" if $i < 1;
+	print "Mul:$gene\n" if $i >1;
+}

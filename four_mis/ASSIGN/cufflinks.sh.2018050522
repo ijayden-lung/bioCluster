@@ -1,0 +1,15 @@
+#!/bin/bash
+#PBS -q batch
+#PBS -N featureCounts
+#PBS -l nodes=1:ppn=2
+#PBS -o ${out}
+#PBS -j oe 
+
+
+/data1/lyk/four_mis/ASSIGN/feature_count.r $inp
+#mkdir ${inp}
+#cd $inp
+
+#####Repeat Mask
+#samtools view -h Aligned.sortedByCoord.out.bam | stringtie - -o rmsk_out_remove.gtf -p 32 -G /home/lyk/data1/cnda/refSeq/$spe.repeatMasker.gtf -A rmsk_gene_abund_remove.tab -e  -x 'chrM,chrX,chrY'
+

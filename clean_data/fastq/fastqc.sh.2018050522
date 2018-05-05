@@ -1,0 +1,18 @@
+#!/bin/bash
+#PBS -q batch
+#PBS -N fastqc
+#PBS -l nodes=4:ppn=2
+#PBS -j oe 
+#PBS -l walltime=07:30:00
+#PBS -l cput=24:00:00  
+#PBS -l mem=2100m
+cd /home/lyk/data1/clean_data/fastq
+for i in *1.fq
+do
+	j=${i%1*}2.fq
+	
+	fastqc -t 8 -o Fastqc_out  $i $j
+done
+
+
+

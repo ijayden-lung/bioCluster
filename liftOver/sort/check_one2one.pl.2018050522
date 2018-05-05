@@ -1,0 +1,79 @@
+#!/usr/bin/perl -w
+
+use List::Util qw(first max maxstr min minstr reduce shuffle sum);
+my $times = 5;
+
+open FILE, "rVSm.ort";
+open FILE2, "rVSm.ort";
+open NON,  ">non_one2one.txt";
+open ONE,  ">rVSm_121.ort";
+my %rat;
+my %mouse;
+while(<FILE>){
+	chomp;
+	my ($rat,$mouse) = (split)[0,6];
+	$rat{$rat}->{$mouse}++;
+	$mouse{$mouse}->{$rat}++;
+}
+
+
+my %rat2mouse;
+while(my($rat,$mouse) = each %rat){
+	my @m = keys %$mouse;
+	my @c = values %$mouse;
+	my $max = max @c;
+
+	while(my($key,$value) = each %$mouse){
+		if($value <= $max/$times){
+			delete $mouse->{$key};
+		}
+	}
+	my @m2 = keys %$mouse;
+	if($#m2<1){
+		$rat2mouse{$rat} = $m2[0];
+	}
+	else{
+		my @non_121 = %$mouse;
+		print NON "$rat\t@non_121\n";
+	}
+}
+
+
+while(my($mouse,$rat) = each %mouse){
+	my @r = keys %$rat;
+	my @c = values %$rat;
+	my $max = max @c;
+
+	while(my($key,$value) = each %$rat){
+		if($value <= $max/$times){
+			delete $rat->{$key};
+		}
+	}
+	my @r2 = keys %$rat;
+	if($#r2<1 && exists $rat2mouse{$r2[0]}){
+		$mouse2rat{$mouse} = $r2[0];
+	}
+	else{
+		my @non_121 = %$rat;
+		print NON "$mouse\t@non_121\n";
+	}
+
+}
+my %hash;
+my @value = values %mouse2rat;
+@value = grep {++$hash{$_}>1} @value;
+while (my ($key,$value) =  each %mouse2rat){
+	if (grep /^$value$/, @value){
+		delete $mouse2rat{$key};
+	}
+}
+
+while(<FILE2>){
+	chomp;	
+	my ($rat,$left,$right,$mouse) = (split)[0,3,4,6];
+	if(exists $mouse2rat{$mouse}){
+		if(abs($left)<10 && abs($right)<10 && abs($left-$right)<10  && $mouse2rat{$mouse} eq $rat){
+			print ONE "$_\n";
+		}
+	}
+}

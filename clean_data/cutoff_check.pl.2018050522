@@ -1,0 +1,36 @@
+#!/usr/bin/perl -w
+
+open FILE, "samtools view -q 255 STAR/high-1/Aligned.sortedByCoord.out.bam | awk '{print \$6}' |";
+my %head;
+my %tail;
+while(<FILE>){
+	chomp;
+	if($_ =~ /^[0-9]+S/){
+		my ($num) = split /S/;
+		$head{$num}++;
+	}
+	else{
+		$head{0}++;
+	}
+
+	if($_ =~ /S$/){
+		my $num = (split /[A-Z]/)[-1];
+		$tail{$num}++;
+	}
+	else{
+		$tail{0}++;
+	}
+}
+
+open HEAD, ">head.txt";
+open TAIL, ">tail.txt";
+print HEAD "Cut_Reads\tNumbers\n";
+print TAIL "Cut_Reads\tNumbers\n";
+
+foreach my $key (sort{$a<=>$b} keys %head){
+	print HEAD "$key\t$head{$key}\n";
+}
+
+foreach my $key (sort{$a<=>$b} keys %tail){
+	print TAIL "$key\t$tail{$key}\n";
+}

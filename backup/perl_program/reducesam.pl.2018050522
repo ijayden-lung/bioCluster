@@ -1,0 +1,10 @@
+#!/usr/bin/perl
+open SAM, '/2_disk/longyk/tophat/join8.chr7.sam';
+open INFO,'>/2_disk/longyk/tophat/sma8.chr7';
+
+####sored8.sam this format is for the join sam.
+
+while(<SAM>){
+	my @key = split /\t/;
+	print INFO "$key[3]\n";	
+}

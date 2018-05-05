@@ -1,0 +1,46 @@
+#!/bin/bash
+#PBS -q batch
+#PBS -N featureCounts
+#PBS -l nodes=4:ppn=4
+#PBS -j oe 
+
+cd ~/data1/clean_data/rmsk/mouse/
+echo 'Counting...'
+
+GTF="/data1/lyk/cnda/refSeq/mm10.repeatMasker.gtf"
+mouCount="table_fc.tsv"
+STAT='stat_fc.txt'
+#./feature_count.r $GTF $mouCount $STAT
+
+
+echo 'Normlizing...'
+#####NORMALIZE THE READ COUNT
+mouNor="table_norm.tsv"
+mouRef="/data1/lyk/cnda/refSeq/mm10.rmsk"
+READ='103244252,3721205 105968491,3930965 76653574,2908310 110026985,1663172 96724144,1484901 97681692,1667711 78406288,1370573'
+Header='ES1 ES2 ES3 MEF1 MEF2 MEF3 MEF4'
+perl /data1/lyk/clean_data/rmsk/normlize_gene_count.pl $mouCount $mouNor $mouRef "$Header" "$READ"
+
+
+########Class or Family
+echo 'Classifying...'
+mouNam="table_name_norm.tsv"
+perl /data1/lyk/clean_data/rmsk/categorize.pl $mouNor $mouNam 0 100
+mouFam="table_family_norm.tsv"
+perl /data1/lyk/clean_data/rmsk/categorize.pl $mouNor $mouFam 2 1000
+mouCls="table_class_norm.tsv"
+perl /data1/lyk/clean_data/rmsk/categorize.pl $mouNor $mouCls 1 5000
+
+
+echo 'HeatMaping ...'
+###HeatMap
+classPDF="mm10_class_enrich.pdf"
+classMain="mm10 repClass"
+familyPDF="mm10_family_enrich.pdf"
+familyMain="mm10 repFamily"
+namePDF="mm10_name.pdf"
+nameMain="mm10_repName"
+/data1/lyk/clean_data/rmsk/heatmap.r "$mouCls" "$classPDF" "$classMain" "$mouFam" "$familyPDF" "$familyMain" "$mouNam" "$namePDF" "$nameMain"
+
+
+

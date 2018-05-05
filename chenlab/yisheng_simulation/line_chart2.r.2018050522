@@ -1,0 +1,13 @@
+#!/usr/bin/Rscript
+
+pdf("Simulation.pdf")
+layout(matrix(c(1),nrow=1,byrow=T))
+
+	
+read.table("/data1/lyk/chenlab/yisheng_simulation/Simultion_13",header=TRUE,sep="\t") -> data
+plot(data$Pool, data$Sum_Effect, main ="", xlab = "Pools", ylab = "Sum Effects",col="red",bg="yellow")
+sp=spline(data$Pool,data$Sum_Effect,n=1000)
+lines(sp,col="red",type="l")
+grid()
+
+

@@ -1,0 +1,17 @@
+open FILE, 'Final_assign_info.out';
+<FILE>;
+
+my %uniq;
+my %mult;
+while(<FILE>){
+	chomp;
+	my @data = split;
+	my $sample = substr($data[0],0,-2).$data[1];
+	$uniq{$sample} += $data[2]+$data[6];
+	$mult{$sample} += $data[8]+$data[12];
+}
+
+foreach my $key (sort keys %uniq){
+	print "$key\t$uniq{$key},$mult{$key}\n";
+}
+

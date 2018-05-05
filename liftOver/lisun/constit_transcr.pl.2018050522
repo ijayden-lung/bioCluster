@@ -1,0 +1,27 @@
+#!/share/apps/genomics/opt/perlbrew/perls/perl-5.25.1/bin/perl -w
+use 5.010;
+use strict;
+my ($exon,$list,$out,$specie) = @ARGV;
+open(EXON, $exon);
+open(LIST, $list);
+open(OUT,$out);
+
+my %list;
+while(<LIST>){
+	chomp;
+	my @line=split(/\t/,$_);
+	if($specie eq "mouse"){
+		$list{$line[7].$line[8]}=undef;
+	}
+	else{
+		$list{$line[1].$line[2]}=undef;
+	}
+}
+while(<EXON>){
+        chomp;
+        my @line=split;
+		if(exists $list{$line[11].$line[13]}){
+			say OUT;
+		}
+}
+

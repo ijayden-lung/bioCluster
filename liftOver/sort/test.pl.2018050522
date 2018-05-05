@@ -1,0 +1,3 @@
+my @a = qw /a v c d e/;
+$c = "c";
+print "@a\n" if (grep {$_ ne $c} @a); 

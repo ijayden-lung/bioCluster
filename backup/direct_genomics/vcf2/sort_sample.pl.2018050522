@@ -1,0 +1,56 @@
+#!/usr/bin/perl -w
+my ($dirname, $filename,%hash, %hash2);
+$dirname = "/1/longyk/direct_genomics/vcf2/";
+opendir (DIR, $dirname ) || die "Error in opening dir $dirname\n";
+
+while( ($filename = readdir(DIR))){               
+	if ($filename =~ '.vcf'){
+		open FILE, "$dirname"."$filename";
+		my $i = 0; #this is to delete the first line;
+		while(<FILE>){
+			$i++;
+			next if $i<=24;
+			chomp;
+			my @line = split /\t/;
+			my $location = "$line[0]\t$line[1]\t$line[3]\t$line[4]";
+			my $mut_ratio = (split (/\:/, $line[9],8))[6];
+			my $mutation = substr($mut_ratio,0,-1);
+			my $name = substr($filename,0,1);
+
+			if ($hash2{$location}){
+				$hash2{$location}=$hash2{$location}."\t$mutation";
+				$hash{$location}=$hash{$location}."\t$name";
+			}
+			else{
+				$hash2{$location}= $mutation;
+				$hash{$location}="$name";
+			}			
+
+		}
+	}		
+}
+
+foreach my $key (sort{$hash2{$a} cmp $hash2{$b}}(keys %hash2)){
+	my $value = $hash2{$key};
+	my @name = split /\t/,$hash{$key};
+	my @muta = split /\t/,$hash2{$key};
+	my %sort;
+	if ($#name ==3){
+
+		for(my $i=0;$i<=$#name;$i++){
+			$sort{$name[$i]} = $muta[$i];
+		}
+	
+
+		foreach my $key (sort{$sort{$a}<=>$sort{$b}} keys %sort){
+			print "$key\t";
+		}
+		foreach my $key (sort{$sort{$a}<=>$sort{$b}} keys %sort){
+			print "$sort{$key}\t";
+		}
+
+		print "\n";
+
+	}
+}
+

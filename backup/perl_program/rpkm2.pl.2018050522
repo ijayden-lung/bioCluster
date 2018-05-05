@@ -1,0 +1,22 @@
+#!/usr/bin/perl -w
+open INFO1,'/2_disk/longyk/tophat/7s.rpkm';
+open INFO2,'/2_disk/longyk/tophat/sma7.rpkm';
+open GENE, '/2_disk/longyk/tophat/chr7.gene';
+open PLACE, '/2_disk/longyk/tophat/chr7.place';
+open RPKM, '>/2_disk/longyk/tophat/SRR1793917_chr7.rpkm';
+print RPKM "gene_id\tlength\tmapped_read\trpkm\n";
+
+my $totalread = 0.0657504; 
+$i = 0;
+while($i<1097){
+	$i++;
+	my $num1 = <INFO1>;
+	my $num2 = <INFO2>;
+	my $num = $num1 + $num2;
+	my $length = <PLACE>;
+	chomp $length;
+	my $gene = <GENE>;
+	my @id = split /\"/,$gene;
+	my $rpkm = $num/$totalread/$length;
+	print RPKM "$id[1]\t$length\t$num\t$rpkm\n";
+}

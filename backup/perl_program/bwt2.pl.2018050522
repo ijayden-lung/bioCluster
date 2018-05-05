@@ -1,0 +1,89 @@
+#!/user/bin/perl
+open FILE,
+    '/1_disk/public_resources/bowtie2-2.2.4/example/reference/lambda_virus.fa';
+#open FILE, 'E:\Undergraduate\Junior\Bioinformatics\lambda_virus.fa';
+$sequence = <FILE>;
+$sequence = "";
+while (<FILE>) {
+    chomp $_;
+    $sequence .= $_;
+}
+
+##here is the sequence of the whole genome with $ tail.
+$sequence .= "\$";
+
+$seq = substr( $sequence, 0, 200 );
+$hash{$seq} = "\$";
+$i          = 1;
+$length     = length($sequence);
+print "length: $length";
+while ( $i < $length - 199 ) {
+    $seq = substr( $sequence, $i, 200 );
+    $base = substr( $sequence, $i - 1, 1 );
+    $hash{$seq} = "$base";
+    $i++;
+}
+$j = 1;
+while ( $i < $length ) {
+    $seq = substr( $sequence, $i, 200 - $j ) . substr( $sequence, 0, $j );
+    $base = substr( $sequence, $i - 1, 1 );
+    $hash{$seq} = "$base";
+    $j++;
+    $i++;
+}
+$i = 1;
+$A[0]=0;$C[0]=0;$G[0]=0;$T[0]=0;
+foreach $key ( sort( keys %hash ) ) {
+    $value = $hash{$key};
+    if($value eq "A"){
+	$A[$i] = $A[$i-1]+1;
+    }
+    else{
+	$A[$i] = $A[$i-1];
+    }
+    $i++;
+}
+
+$i = 1;
+$A[0]=0;$C[0]=0;$G[0]=0;$T[0]=0;
+foreach $key ( sort( keys %hash ) ) {
+    $value = $hash{$key};
+    if($value eq "C"){
+	$C[$i] = $C[$i-1]+1;
+    }
+    else{
+	$C[$i] = $C[$i-1];
+    }
+    $i++;
+}
+
+$i = 1;
+$A[0]=0;$C[0]=0;$G[0]=0;$T[0]=0;
+foreach $key ( sort( keys %hash ) ) {
+    $value = $hash{$key};
+    if($value eq "G"){
+	$G[$i] = $G[$i-1]+1;
+    }
+    else{
+	$G[$i] = $G[$i-1];
+    }
+    $i++;
+}
+
+$i = 1;
+$A[0]=0;$C[0]=0;$G[0]=0;$T[0]=0;
+foreach $key ( sort( keys %hash ) ) {
+    $value = $hash{$key};
+    if($value eq "T"){
+	$T[$i] = $T[$i-1]+1;
+    }
+    else{
+	$T[$i] = $T[$i-1];
+    }
+    $i++;
+}
+
+
+$i--;
+print "word: $i, line: $j\n";
+print "A: $A[$i]\tC: $C[$i]\tG: $G[$i]\tT: $T[$i]";

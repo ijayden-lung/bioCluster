@@ -1,0 +1,28 @@
+#!/usr/bin/perl -w
+
+my ($dirname, $filename );
+$dirname = "/1/longyk/direct_genomics/vcf/result/";
+opendir (DIR, $dirname ) || die "Error in opening dir $dirname\n";
+
+system ("rm sort.txt");
+system ("rm result.txt");
+while( ($filename = readdir(DIR))){               
+	if ($filename =~ 'result'){
+		open FILE, "$dirname"."$filename";
+		my %hash;
+		while(<FILE>){
+			chomp;
+			my @data = split /\,/;
+			$hash{$_}= $data[1].$data[2];
+
+		}
+
+		close FILE;
+		foreach my $key (sort{$hash{$a} cmp  $hash{$b}} keys %hash){
+			open RESULT, ">>$dirname"."sort.txt";
+			print RESULT "$key\n";
+		}
+	}
+}
+
+

@@ -1,0 +1,15 @@
+#!/usr/bin/perl -w
+#
+open FILE, 'rn6.gtf';
+my $min = 1000000000;
+while(<FILE>){
+	chomp;
+	my ($str,$end) = (split)[3..4];
+	if($str == $end){
+		print "$_\n";
+	}
+	$length = $end - $str;
+	$min = ($min<$length) ? $min :$length;
+}
+
+print "$min\n";

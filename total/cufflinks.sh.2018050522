@@ -1,0 +1,14 @@
+#!/bin/bash
+#PBS -q batch
+#PBS -N STAR
+#PBS -l nodes=4:ppn=8
+#PBS -o ${out}
+#PBS -j oe 
+
+mkdir ${inp}
+cd $inp
+STAR --twopassMode Basic --runThreadN 32 --outBAMsortingThreadN 32 --genomeDir /home/lyk/data1/cnda/STAR_INDEX/$spe --readFilesIn /home/wangwen/RMMEF/total_3mRNA/N05842_WW_80-133965418_libSEQ/PF_data/180206-X3B/3-Mrna-mix-$sam\_combined_R1.fastq.gz --outFilterIntronMotifs RemoveNoncanonical --outSAMtype BAM SortedByCoordinate --outSAMattrIHstart 0  --outSAMstrandField intronMotif --outFilterMultimapScoreRange 0 --readFilesCommand zcat
+
+####INDEX for sorted bam file
+#samtools index -@ 32 Aligned.sortedByCoord.out.bam
+

@@ -1,0 +1,9 @@
+#!/bin/bash
+#PBS -q batch
+#PBS -N ASSIGN
+#PBS -l nodes=1:ppn=1
+#PBS -j oe 
+
+cd /data1/lyk/chenlab/
+perl assign.pl $sample
+

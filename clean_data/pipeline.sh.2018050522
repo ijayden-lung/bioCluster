@@ -1,0 +1,17 @@
+#!/bin/bash
+
+perl select_gene.pl
+perl  get_genelist_bam.pl "high-1"
+#perl  get_genelist_bam.pl "high-2"
+#perl  get_genelist_bam.pl "low-1"
+#perl  get_genelist_bam.pl "low-2"
+
+#bam2wig.py -i WIG/high-1_top.sorted.bam -s hg38.chrom.sizes -o high-1_top
+#bam2wig.py -i WIG/high-2_top.sorted.bam -s hg38.chrom.sizes -o high-2_top
+#bam2wig.py -i WIG/low-2_top.sorted.bam -s hg38.chrom.sizes -o low-2_top
+#bam2wig.py -i WIG/low-1_top.sorted.bam -s hg38.chrom.sizes -o low-1_top
+
+sed -i '1i\track type=wiggle_0 name="high-1"' high-1_top.wig
+sed -i '1i\track type=wiggle_0 name="low-1"' low-1_top.wig
+sed -i '1i\track type=wiggle_0 name="low-2"' low-2_top.wig
+sed -i '1i\track type=wiggle_0 name="high-2"' high-2_top.wig

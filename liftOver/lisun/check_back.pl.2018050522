@@ -1,0 +1,77 @@
+#!/usr/bin/perl -w
+my($f1,$f2,$f3,$f4,$f5,$f6,$f7,$f8,$shift) = @ARGV;
+open NEW, $f1;
+open MOU, $f2;
+open RAT, $f3;
+open M2R, $f4;
+open ONE2ONE, $f5;
+open FM2R, $f6;
+open FMOU, $f7;
+open FRAT, $f8;
+my %m_one2one;
+my %r_one2one;
+while(<ONE2ONE>){
+	chomp;
+	my ($m_one2one,$r_one2one) = split;
+	$m_one2one{$m_one2one} = undef;
+	$r_one2one{$r_one2one} = undef;
+}
+
+while(<RAT>){
+	my ($chr,undef,$func,$str,$end,undef,undef,undef,undef,$gene,undef,$transcript,undef,$exon) = split;
+	$gene =~ s/\"|\;//g;
+	if(exists $r_one2one{$gene}){
+		print FRAT;
+	}
+}
+
+
+
+my %filter;
+my $total_exon;
+my $m2r_exon;
+my $back_exon;
+my $correct_exon;
+my $final_exon;
+while(<NEW>){
+	chomp;
+	my ($chr,undef,$func,$str,$end,undef,undef,undef,undef,$gene,undef,$transcript,undef,$exon) = split;
+	$back_exon++;
+	my $line = <MOU>;
+	last if (!defined ($line));
+	chomp $line;
+	my ($chr0,undef,$func0,$str0,$end0,undef,undef,undef,undef,$gene0,undef,$transcript0,undef,$exon0) = split /\s+/,$line;
+
+	$gene =~ s/\"|\;//g;
+	$gene0 =~ s/\"|\;//g;
+	print FMOU "$line\n" if (exists $m_one2one{$gene0});
+	$total_exon++;
+	while($gene ne $gene0 || $transcript0 ne $transcript || $exon ne $exon0){
+		$line = <MOU>;
+		last if (!defined ($line));
+		chomp $line;
+		($chr0,undef,$func0,$str0,$end0,undef,undef,undef,undef,$gene0,undef,$transcript0,undef,$exon0) = split /\s+/,$line;
+		$gene0 =~ s/\"|\;//g;
+		print FMOU "$line\n" if (exists $m_one2one{$gene0});
+		$total_exon++;
+	}
+	my $a = $str0-$str;
+	my $b = $end0-$end;
+	if(abs($a + $b) <= $shift){
+		$correct_exon++;
+		#if(exists $m_one2one{$gene}){ ###### Not use the ensembl one2one info
+			$final_exon++;
+			$filter{$gene.$transcript.$exon} = undef;
+			#}
+	}
+}
+
+
+while(<M2R>){
+	chomp;
+	my ($chr,undef,$func,$str,$end,undef,undef,undef,undef,$gene,undef,$transcript,undef,$exon) = split;
+	$m2r_exon++;
+	$gene =~ s/\"|\;//g;
+	print FM2R "$_\n" if  (exists $filter{$gene.$transcript.$exon});
+}
+print "total_exon:\t$total_exon\nm2r_exon:\t$m2r_exon\nback_exon:\t$back_exon\ncorrect_econ:\t$correct_exon\nfinal_exon:\t$final_exon\n";

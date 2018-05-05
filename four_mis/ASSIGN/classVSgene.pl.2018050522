@@ -1,0 +1,19 @@
+#!/usr/bin/perl -w
+#
+my %hash;
+open FILE, "/data1/lyk/cnda/refSeq/mm10.rmsk";
+<FILE>;
+while(<FILE>){
+	chomp;
+	my @data = split;
+	$hash{$data[11]}->{$data[12]} = "";
+}
+
+while(my ($class,$family) = each %hash){
+	my %a = %$family;
+	print "$class";
+	foreach my $key (keys %a){
+		print "\t$key";
+	}
+	print "\n";
+}

@@ -1,0 +1,39 @@
+#!/usr/bin/perl
+open GTF, '/2_disk/longyk/tophat/hg19.gtf';
+open BEG, '>/2_disk/longyk/tophat/chr7.begin';
+open EN, '>/2_disk/longyk/tophat/chr7.end';
+open GENE,'>/2_disk/longyk/tophat/chr7.gene';
+open PLACE, '>/2_disk/longyk/tophat/chr7.place';
+
+my %place1;
+my %hash;
+my %place2;
+$count = 0;
+$count2 = 0;
+while(<GTF>){
+	my @gtf = split /\t/;
+	if($gtf[0] eq 'chr7'){
+		$count++;
+	    my @key = split /;/, $gtf[8];
+	
+	    if (!exists $place1{$key[0]}){
+		    $place1{$key[0]} = "$gtf[3]";
+		    $count2++;
+		    
+	    }
+	    $place2{$key[0]} = "$gtf[4]";
+	    $hash{$key[0]} += $gtf[4] - $gtf[3];
+    }
+}
+print "total chry $count\n";
+print "gene chr7 $count2\n";
+
+
+my %place_rev = reverse %place1;
+
+foreach my $key (sort {$a<=>$b} (keys %place_rev )){
+	print BEG "$key\n";
+	print EN "$place2{$place_rev{$key}}\n";
+	print PLACE "$hash{$place_rev{$key}}\n";
+	print GENE "$place_rev{$key}\n";
+}

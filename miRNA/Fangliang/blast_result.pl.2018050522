@@ -1,0 +1,125 @@
+#!/usr/bin/perl -w
+#
+my %unmap;
+open FILE,'NonMiR.txt';
+<FILE>;
+while(<FILE>){
+	chomp;
+	my ($seq) = split;
+	$unmap{$seq} = $_;
+}
+
+
+
+
+my %score;
+my %pval;
+my %gene;
+open FILE,"awk -F ',' '(\$4 ~ /^NR|^XR/)' 31KSD9TH015-Alignment-HitTable.csv |";
+while(<FILE>){
+	chomp;
+	my @data = split /,/;
+	my $seq = $data[2];
+	my $gene = $data[3];
+	my $score = $data[-1];
+	my $pval = $data[-2];
+	delete $unmap{$seq};
+	if(!exists $score{$seq}){
+		$score{$seq} = $score;
+		$pval{$seq} = $pval;
+		$gene{$seq}->{$gene} = '';
+	}
+	elsif($score{$seq} <= $score && $pval{$seq} >= $pval){
+		$gene{$seq}->{$gene} = '';
+	}
+}
+
+my %gene2;
+my %pval2;
+my %score2;
+
+open FILE,"awk -F ',' '(\$4 ~ /^NM|^XM/)' 31KSD9TH015-Alignment-HitTable.csv |";
+while(<FILE>){
+	chomp;
+	my @data = split /,/;
+	my $seq = $data[2];
+	my $gene = $data[3];
+	my $score = $data[-1];
+	my $pval = $data[-2];
+	delete $unmap{$seq};
+	if(!exists $gene{$seq}){
+		if(!exists $score2{$seq}){
+			$score2{$seq} = $score;
+			$pval2{$seq} = $pval;
+			$gene2{$seq}->{$gene} = '';
+		}
+		elsif($score2{$seq} <= $score && $pval2{$seq} >= $pval){
+			$gene2{$seq}->{$gene} = '';
+		}
+	}
+}
+
+my %gene3;
+my %pavl3;
+my %score3;
+open FILE,"awk -F ',' '(\$4 ~ /^AC|^NC|^NG|^NT|^NW|^NZ/)' 31KSD9TH015-Alignment-HitTable.csv |";
+while(<FILE>){
+	chomp;
+	my @data = split /,/;
+	my $seq = $data[2];
+	my $gene = $data[3];
+	my $score = $data[-1];
+	my $pval = $data[-2];
+	delete $unmap{$seq};
+	if(!exists $gene{$seq} && !exists $gene2{$seq}){
+		if(!exists $score3{$seq}){
+			$score3{$seq} = $score;
+			$pval3{$seq} = $pval;
+			$gene3{$seq}->{$gene} = '';
+		}
+		elsif($score3{$seq} <= $score && $pval3{$seq} >= $pval){
+			$gene3{$seq}->{$gene} = '';
+		}
+	}
+}
+
+my $noncod = keys %gene;
+my $coding = keys %gene2;
+my $genomic= keys %gene3;
+my $unmap  = keys %unmap;
+print "Non-coding gene: $noncod\nCoding gene: $coding\nGenomic: $genomic\nUnmap: $unmap\n";
+
+
+
+open OUT, '>BlastResult.tsv';
+while(my ($key,$val) = each %gene){
+	print OUT "$key";
+	foreach my $gene (keys %$val){
+		print OUT "\t$gene";
+	}
+	print OUT "\n";
+}
+
+while(my ($key,$val) = each %gene2){
+	print OUT "$key";
+	foreach my $gene (keys %$val){
+		print OUT "\t$gene";
+	}
+	print OUT "\n";
+}
+while(my ($key,$val) = each %gene3){
+	print OUT "$key";
+	foreach my $gene (keys %$val){
+		print OUT "\t$gene";
+	}
+	print OUT "\n";
+}
+
+open OUT,'>Unmap_NonMir.txt';
+open OUT2,'>Unmap_NonMir.fa';
+my $i = 0;
+while(my ($key,$val) = each %unmap){
+	$i++;
+	print OUT "$val\n";
+	print OUT2 ">$i\n$key\n";
+}

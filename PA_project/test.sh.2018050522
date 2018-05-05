@@ -1,0 +1,18 @@
+#!/bin/bash
+
+
+sample=(H3TW5DMXX_L1 H3TW5DMXX_L2 H7FJLDMXX_L1 H7FJLDMXX_L2) 
+#species=(C3H_HeJ CBA_J) 
+#species=(mm10 BALB_caJ) 
+species=(mm10)
+for sam in ${sample[*]}
+do
+	for spe in ${species[*]}
+	do
+		cd $spe/$sam
+		samtools sort BWAAlign.sam -o BWAAlign_sorted.bam 
+		samtools index BWAAlign_sorted.bam
+	done
+done
+
+

@@ -1,0 +1,12 @@
+cd ../vcf2/
+mkdir "avinput"
+for i in *vcf
+do
+
+	echo $i
+
+	#convert2annovar.pl --format vcf4 $i  -outfile avinput/${i%.*}.avinput
+	convert2annovar.pl --format vcf4 $i  -includeinfo -outfile  avinput/${i%.*}.avinput2
+	# -includeinfo
+
+done

@@ -1,0 +1,43 @@
+#!/usr/bin/perl -w
+#
+open FILE, "Splicing_anno.tsv";
+<FILE>;
+my %hash;
+while(<FILE>){
+	chomp;
+	my (undef,$high,$low,$pre,$pro) = split;
+	my ($exon1) = split /:/,$pre;
+	$exon1 = substr($exon1,4);
+	$hash{$exon1} .= "$_\n";
+}
+
+
+my %hash2;
+foreach my $exon (sort{$a <=> $b} keys %hash){
+	my @junc = split /\n/, $hash{$exon};
+	my $sum1=0;
+	my $sum2=0;
+	foreach (@junc){
+		my ($read1,$read2) = (split)[1,2];
+		$sum1 += $read1;
+		$sum2 += $read2;
+	}
+	foreach (@junc){
+		my ($junc,$read1,$read2,$pre,$pro) = split /\t/;
+		$per1 = $read1/$sum1*100;
+		$per2 = $read2/$sum2*100;
+		$per1 = sprintf("%.1f",$per1);
+		$per2 = sprintf("%.1f",$per2);
+		$pre =~ s/\s//g;
+		$pro =~ s/\s//g;
+		$hash2{$junc} .= "$pre-$pro\t$per1%\t$per2%\n";
+	}
+}
+
+
+open OUT, ">Splicing_Percent.tsv";
+print OUT "Junction\thigh\tlow\n";
+
+foreach my $key (sort keys %hash2){
+	print OUT "$hash2{$key}";
+}

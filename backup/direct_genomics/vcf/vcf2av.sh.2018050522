@@ -1,0 +1,9 @@
+for i in *vcf
+
+do
+
+echo $i
+
+convert2annovar.pl --format vcf4 $i  -outfile ${i%.*}.avinput
+
+done

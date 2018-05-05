@@ -1,0 +1,21 @@
+#!/usr/bin/perl -w
+my @file = ("4_S3_L001_R1_001.fastq","4_S3_L001_R2_001.fastq","H_S4_L001_R1_001.fastq","H_S4_L001_R2_001.fastq","M_S1_L001_R1_001.fastq","M_S1_L001_R2_001.fastq","O_S2_L001_R1_001.fastq",    "O_S2_L001_R2_001.fastq");
+my $dirname = "/1/longyk/direct_genomics/primer/";
+my $dirname2 = "/1/longyk/direct_genomics/script/";
+opendir (DIR, $dirname ) || die "Error in opening dir $dirname\n";
+my $filename;
+
+while( ($filename = readdir(DIR))){
+	if ($filename =~ "csv"){
+		my @data;
+		foreach my $ele (@file){
+			my $fastq = "$dirname2$ele/$filename";
+			my $new = "$dirname2$ele/$filename.new";
+			my ($name,undef,undef,$ori) = split /\_/,$ele,4;
+			system ("sed '1i\\$name\_$ori' $fastq >$new ");
+			push @data, $new;
+
+		}
+		system ("paste -d \",\" $dirname$filename $data[0] $data[1] $data[2] $data[3] $data[4] $data[5] $data[6] $data[7] >$dirname$filename.new");
+	}
+}

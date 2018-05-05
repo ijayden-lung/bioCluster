@@ -1,0 +1,5 @@
+#!/usr/bin/perl -w
+$str = "ID=COSM148182,COSM148183;OCCURENCE=3(haematopoietic_and_lymphoid_tissue),1(stomach),1(liver),1(breast),1(large_intestine)";
+$str =~ /COSM(\d+)/;
+my @result = @1;
+print "@result\n";

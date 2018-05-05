@@ -1,0 +1,16 @@
+#!/bin/bash
+
+#PBS -q batch
+#PBS -N liftOver
+#PBS -l nodes=1:ppn=1
+#PBS -j oe 
+#PBS -l walltime=07:30:00
+#PBS -l cput=24:00:00  
+#PBS -l mem=70gb
+#PBS -M longyk@mail.sustc.edu.cn
+#PBS -m be
+
+cd /home/lyk/data1/liftOver/lisun/
+#liftOver -gff /data1/lisun/fusion_cell/stringtie/merge/mm10.gtf /home/lisun/prog/liftover/mm10ToRn6.over.chain mm102rn6.gtf Unm_mm102rn6
+liftOver -gff mm102rn6.gtf /home/lisun/prog/liftover/rn6ToMm10.over.chain back_mm10.gtf Unm_back_mm10
+

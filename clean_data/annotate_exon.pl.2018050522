@@ -1,0 +1,32 @@
+#!/usr/bin/perl -w
+open EXON, "cd44_merge.gtf";
+my %exon;
+while(<EXON>){
+	chomp;
+	my @data = split;
+	$exon{$data[6]}->[0] = $data[3];
+	$exon{$data[6]}->[1] = $data[4];
+}
+
+open FILE, "Splicing_sure.tsv";
+<FILE>;
+open ANNO, ">Splicing_anno.tsv";
+print ANNO "Junction\thigh\tlow\tpre-exon\tpro-exon\n";
+while(<FILE>){
+	chomp;
+	my ($pre,$pro,$limit);
+	my ($end1,$str2,$high1,$high2,$low1,$low2) = split /\t|\-/;
+	while(my($key,$value) = each %exon){
+		if($value->[0]<$end1 && $end1 <= $value->[1]){
+			$limit = $end1 - $value->[1];
+			$pre = "$key: $limit";
+		}
+		if($value->[0]<=$str2 && $str2 < $value->[1]){
+			$limit = $str2 - $value->[0];
+			$pro = "$key: $limit";
+		}
+	}
+	my $high = $high1+$high2;
+	my $low  = $low1 +$low2;
+	print ANNO "$end1-$str2\t$high\t$low\t$pre\t$pro\n";
+}

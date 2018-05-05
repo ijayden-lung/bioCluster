@@ -1,0 +1,9 @@
+#!/bin/bash
+
+echo  "Programmer start now!"
+echo "hello, $USER"
+bcftools view -vcg O_S2_L001.bcf >O.vcf
+bcftools view -vcg M_S1_L001.bcf >M.vcf
+bcftools view -vcg H_S3_L001.bcf >H.vcf
+bcftools view -vcg 4_S3_L001.bcf >4.vcf
+

@@ -1,0 +1,23 @@
+#!/usr/bin/perl -w
+
+my ($inp) = @ARGV;
+open FILE, $inp or die "Cannot open FILE,$inp,$!\n";
+<FILE>;
+#my ($par_m,$par_r,$rm_m,$rm_r,$mr_m,$mr_r,$mock_m,$mock_r);
+my @read_count;
+my $i = 1;
+while(<FILE>){
+	chomp;
+	if($i%2==0){
+		$read_count[$i/2-1] = (split)[1];
+	}
+	$i++;
+}
+
+my $rm_p = $read_count[2]/($read_count[2]+$read_count[3]);
+my $mr_p = $read_count[4]/($read_count[4]+$read_count[5]);
+my $mock_p = $read_count[6]/($read_count[6]+$read_count[7]);
+my $rm_norm = $read_count[2]*$read_count[1]/$read_count[3]/$read_count[0];
+my $mr_norm = $read_count[4]*$read_count[1]/$read_count[5]/$read_count[0];
+my $mock_norm = $read_count[6]*$read_count[1]/$read_count[7]/$read_count[0];
+print "$rm_p,$rm_norm\n$mr_p,$mr_norm\n$mock_p,$mock_norm\n";

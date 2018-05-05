@@ -1,0 +1,14 @@
+#!/user/bin/perl
+open READ, '/2_disk/longyk/human/smallreads.fq';
+open SEQ, '>/2_disk/longyk/human/smallreads.sq';
+open QUL, '>/2_disk/longyk/human/smallreads.qu';
+my $i = 0;
+while(<READ>){
+    if($i % 4 == 1){
+	print SEQ "$_";
+    }
+    elsif($i % 4 == 3){
+	print QUL "$_";
+    }
+    $i++;
+}

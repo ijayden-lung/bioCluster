@@ -1,0 +1,19 @@
+#!/bin/bash
+#PBS -q batch
+#PBS -N Assigned
+#PBS -l nodes=1:ppn=1
+#PBS -j oe 
+#PBS -l walltime=50:30:00
+#PBS -l cput=48:00:00  
+#PBS -l host=compute-0-6
+
+for i in /data1/lisun/fusion_cell/STAR/mm10_*/Log.final.out
+do
+	cd /data1/lyk/chenlab/
+	IFS='\/' read -r -a array <<< "$i"
+	sample="${array[5]}"
+	sample=${sample#*\_}
+	perl assign.pl $sample
+done
+
+

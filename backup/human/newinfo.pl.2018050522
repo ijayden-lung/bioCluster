@@ -1,0 +1,112 @@
+#!/user/bin/perl
+###此文件是用来计算Last column和location信息的。
+use Time::HiRes qw/time/;
+my $t1 = time();
+$intercept = 600;
+$chrom = 'chrM';
+open CHROM, '/2_disk/longyk/human/red'.$chrom;
+open LOCA, '/2_disk/longyk/human/loca'.$chrom;
+=pod
+open CHROM, 'E:\rednaive.fa';
+open LOCA, 'E:\naivelocation.txt';
+=cut
+my $chrom = <CHROM>;
+chomp $chrom;
+my $sequence = <CHROM>;
+chomp $sequence;   
+my @location = <LOCA>;
+close CHROM;
+close LOCA;
+
+$A=0;
+$C=0;
+$G=0;
+$T=0;
+my $t2 = time();
+my $time = $t2-$t1;
+print "time1: $time\n";
+##here is the sequence of the whole genome with $ tail.
+$sequence .= "\$";
+$seq = substr( $sequence, 0, $intercept );
+$hash{$seq} = "\$ $location[0]";   ###wrong
+$i          = 1;
+$length     = length($sequence);  #the length of whole genome +1.
+while ( $i < $length - $intercept+1 ) {
+    $seq = substr( $sequence, $i, $intercept );
+    $base = substr( $sequence, $i - 1, 1 );
+    $$base++;
+    $locat = $location[int($i/50)] + $i%50;
+    #if(exists $hash{$seq  })
+    $hash{$seq} = "$base $locat";  #the base is the last column and i is the location
+    $i++;
+}  
+$j = 1;
+while ( $i < $length-1 ) {   ###-1 because the @location's index.
+    $seq = substr( $sequence, $i, $intercept - $j ) . substr( $sequence, 0, $j );
+    $base = substr( $sequence, $i - 1, 1 );
+    $$base++;
+    $locat = $location[int($i/50)] + $i%50;
+    $hash{$seq} = "$base $locat";
+    $j++;
+    $i++;
+}
+print "$i \t $j\n";
+$seq = substr( $sequence, $i, $intercept - $j ) . substr( $sequence, 0, $j );
+$base = substr( $sequence, $i - 1, 1 );
+$$base++;
+$locat = -1;
+$hash{$seq} = "$base $locat";
+my $t3 = time();
+$time = $t3-$t2;
+print "time2: $time\n";
+
+
+open BASENUM, '>/2_disk/longyk/human/baseNum'.$chrom;
+
+$iA=0;
+$iC = $A;
+$iG = $iC+$C;
+$iT = $iG + $G;
+$total = $iT + $T;
+print BASENUM "$chrom\n$iA\n$iC\n$iG\n$iT\n$total";
+print "$chrom\t$iA\t$iC\t$iG\t$iT\t$total\n";
+close BASENUM;
+
+open FILE1, '>/2_disk/longyk/human/LC'.$chrom;
+open FILE2, '>/2_disk/longyk/human/SA'.$chrom;
+open TALLYA, '>/2_disk/longyk/human/A'.$chrom;
+open TALLYC, '>/2_disk/longyk/human/C'.$chrom;
+open TALLYG, '>/2_disk/longyk/human/G'.$chrom;
+open TALLYT, '>/2_disk/longyk/human/T'.$chrom;
+$A = $iA;
+$C = $iC;
+$G = $iG;
+$T = $iT;
+$jjj=0;
+print "$A\t$C\t$G\t$T\n";
+foreach my $key ( sort( keys %hash ) ) {  ####sort所花的世間最長了這是必須時間啊，沒辦法。第二是substr的世間，打印文件也要了5秒鐘左右其實。
+    @array = split (/ /,$hash{$key});
+    $b = $array[0];
+    $$b++;
+    print FILE1 "$b";
+    print FILE2 "$array[1]\n";
+    print TALLYA "$A\n";
+    print TALLYC "$C\n";
+    print TALLYG "$G\n";
+    print TALLYT "$T\n";
+    $jjj++;
+}
+
+
+close FILE1;
+close FILE2;
+close TALLYA;
+close TALLYC;
+close TALLYG;
+close TALLYT;
+
+$difference = $jjj-$i;
+print "$difference\t this should be 1 or add the intercept\n";
+my $t4 = time();
+$time = $t4-$t3;
+print "time3: $time\n";

@@ -1,0 +1,112 @@
+#!/usr/bin/perl
+# Joel McManus, 01/18/2010
+# This script takes the tab-delimited data (see Table S2) and sorts the gene_ids into divergence categories based on the q-values from the 
+# binomial exact and Fisher exact test results.  This script sorts at 20, 50, 100, 200, and 500 read-hit thresholds.  Output includes a
+# tab-delimited file for each sorting criteria (with the original data and the category for each gene_id) and a summary file of all results
+# from that particular sorting.
+#
+# Joel McManus 04/08/2014
+# Updated to fix the sorting of cxt and c+t categories
+
+use FileHandle;
+use strict;
+my ($input,$qval_cutoff) = ("table_qvalue_pval_norm_mefVSesc.rc",0.001);
+my $readhit_cutoff = 20;
+
+#$input = "table_qvalue_QC_filter_cis_trans_MOCK.tsv";
+open(RAWDATA, "$input") or die("couldn't open $input"); #tab-delimited post Excel file (mac _ endings).  
+## This will be the all_genes_input.txt file.  These are all the genes with 20+ total read-hits from parental sample.
+my $header = <RAWDATA>; ### Should eat the header _ ####
+chomp $header;
+
+
+my $OUTPUT = new FileHandle ">Cis_reg_$qval_cutoff.txt" or die "can't open Cis_reg.txt";   #
+$OUTPUT->printf("$header\tCategory\n");
+my $OUTPUT2 = new FileHandle ">Div_Cat_Count\_$qval_cutoff.txt" or die "can't open ouput 2";
+$OUTPUT2->printf("$qval_cutoff=qvalue\nCIS\tTRANS\tC_PLUS_T\tC_MINUS_T\tCOMPENSATORY\tT_MINUS_C\tCONSERVED\tCLASSIFIED\tPASS_COUNT\n");
+
+my $cis;
+
+my %CIS;
+my %TRANS;
+my %C_MINUS_T;
+my %T_MINUS_C;
+my %C_PLUS_T;
+my %COMPENSATORY;
+my %CONSERVED;
+my $PASS_COUNT = 0;
+
+while (<RAWDATA>) {
+	chomp;
+	my ($gene_id,$Hyb_M_hits,$Hyb_R_hits,undef,$Hyb_qvalues,$Par_M_hits,$Par_R_hits,undef,$Par_qvalues,undef,$FET_qvalues,$LOG2_H_M_R, $LOG2_P_M_R) = split; 
+	my $Par_total = $Par_M_hits + $Par_R_hits;
+	if ($Par_total >= $readhit_cutoff) {
+		$PASS_COUNT++;
+	}
+	else{
+		#print "$_\n";
+		#next;
+	}
+
+	if(abs($LOG2_H_M_R) >1 || abs($LOG2_P_M_R) >1){
+		if (($Par_qvalues < $qval_cutoff) && ($FET_qvalues >= $qval_cutoff) && ($Hyb_qvalues < $qval_cutoff)) {
+			$OUTPUT->printf("$_\tCIS\n");
+			$CIS{$gene_id} = $_;
+		}
+		elsif (($Par_qvalues < $qval_cutoff) && ($FET_qvalues < $qval_cutoff) && ($Hyb_qvalues >= $qval_cutoff)) {
+			$OUTPUT->printf("$_\tTRANS\n");
+			$TRANS{$gene_id} = $_;
+		}
+		elsif (($Par_qvalues < $qval_cutoff) && ($FET_qvalues < $qval_cutoff) && ($Hyb_qvalues < $qval_cutoff)) { # replacement _s 04/08/2014
+			if ($LOG2_P_M_R/$LOG2_H_M_R>1) {
+				$OUTPUT->printf("$_\tC_PLUS_T\n");
+				$C_PLUS_T{$gene_id} = $_;
+			}
+			elsif ($LOG2_P_M_R*$LOG2_H_M_R>0) {
+				$OUTPUT->printf("$_\tC_MINUS_T\n");
+				$C_MINUS_T{$gene_id} = $_;
+			}
+			else{
+				$OUTPUT->printf("$_\tT_MINUS_C\n");
+				$T_MINUS_C{$gene_id} = $_;
+			}
+		}
+		elsif (($Par_qvalues >= $qval_cutoff) && ($FET_qvalues < $qval_cutoff) && ($Hyb_qvalues < $qval_cutoff)) {
+			$OUTPUT->printf("$_\tCOMPENSATORY\n");
+			$COMPENSATORY{$gene_id} = $_;
+		}
+	}
+	else{
+		$OUTPUT->printf("$_\tCONSERVED\n");
+		$CONSERVED{$gene_id} = $_;
+	}
+}
+my $ciscount = keys %CIS;
+my $transcount = keys %TRANS;
+my $cisplustrans = keys %C_PLUS_T;
+my $cisminustrans = keys %C_MINUS_T;
+my $transminuscis = keys %T_MINUS_C;
+my $compcount = keys %COMPENSATORY;
+my $conserved = keys %CONSERVED;
+my $classified = $ciscount + $transcount + $cisplustrans + $cisminustrans + $transminuscis + $compcount + $conserved;
+
+## Note, updated code below to pring numbers and percent CJM 04/08/2014
+my $cispct = sprintf("%.3f", (($ciscount/$PASS_COUNT)*100));
+printf("Number of cis regulated genes: $ciscount\t$cispct\%\n");
+my $transpct = sprintf("%.3f", (($transcount/$PASS_COUNT)*100));
+printf("Number of trans regulated genes: $transcount\t$transpct\%\n");
+my $cisplustranspct = sprintf("%.3f", (($cisplustrans/$PASS_COUNT)*100));
+printf("Number of cis plus trans regulated genes: $cisplustrans\t$cisplustranspct\%\n");
+my $cisminustranspct = sprintf("%.3f", (($cisminustrans/$PASS_COUNT)*100));
+printf("Number of cis minus trans regulated genes: $cisminustrans\t$cisminustranspct\%\n");
+my $transminuscispct = sprintf("%.3f", (($transminuscis/$PASS_COUNT)*100));
+printf("Number of trans minus cis regulated genes: $transminuscis\t$transminuscispct\%\n");
+my $comppct = sprintf("%.3f", (($compcount/$PASS_COUNT)*100));
+printf("Number of compensatory regulated genes: $compcount\t$comppct\%\n");
+my $conservedpct = sprintf("%.3f", (($conserved/$PASS_COUNT)*100));
+printf("Number of conserved genes: $conserved\t$conservedpct\%\n");
+my $classifiedpct = sprintf("%.3f", (($classified/$PASS_COUNT)*100));
+printf("Percent of classified genes: $classifiedpct\%\n");
+
+printf("$PASS_COUNT genes surpassed $readhit_cutoff reads\n");
+$OUTPUT2->printf("$ciscount\t$transcount\t$cisplustrans\t$cisminustrans\t$compcount\t$transminuscis\t$conserved\t$classified\t$PASS_COUNT\n\n");

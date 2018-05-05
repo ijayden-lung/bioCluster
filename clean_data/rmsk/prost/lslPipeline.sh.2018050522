@@ -1,0 +1,47 @@
+#!/bin/bash
+#PBS -q batch
+#PBS -N featureCounts
+#PBS -l nodes=4:ppn=4
+#PBS -j oe 
+
+cd ~/data1/clean_data/rmsk/prost/
+echo 'Counting...'
+
+GTF="/data1/lyk/cnda/refSeq/hg38.repeatMasker.gtf"
+mouCount="table_fc.tsv"
+STAT='stat_fc.txt'
+#./feature_count.r $GTF $mouCount $STAT 16
+
+
+echo 'Normlizing...'
+#####NORMALIZE THE READ COUNT
+mouNor="table_norm.tsv"
+mouRef="/data1/lyk/cnda/refSeq/hg38.rmsk"
+READ='115755393,4344214 99720001,3576689 103270809,3766845 111163644,4215956 113548819,4269220 112010375,3995017'
+Header='GS689_1 GS689_2 GS689_3 PC3E_1 PC3E_2 PC3E_3'
+#perl /data1/lyk/clean_data/rmsk/normlize_gene_count.pl $mouCount $mouNor $mouRef "$Header" "$READ"
+
+
+########Class or Family
+echo 'Classifying...'
+mouNor="awk '(\$2 ~ /LTR|SINE|LINE/ || NR ==1)' table_norm.tsv |"
+mouNam="table_name_norm.tsv"
+perl /data1/lyk/clean_data/rmsk/categorize.pl "$mouNor" $mouNam 0 100
+mouFam="table_family_norm.tsv"
+perl /data1/lyk/clean_data/rmsk/categorize.pl "$mouNor" $mouFam 2 1000
+mouCls="table_class_norm.tsv"
+perl /data1/lyk/clean_data/rmsk/categorize.pl "$mouNor" $mouCls 1 5000
+
+
+echo 'HeatMaping ...'
+###HeatMap
+classPDF="hg38_lsl_class_enrich.pdf"
+classMain="hg38 repClass"
+familyPDF="hg38_lsl_family_enrich.pdf"
+familyMain="hg38 repFamily"
+namePDF="hg38_lsl_name.pdf"
+nameMain="hg38 repName"
+/data1/lyk/clean_data/rmsk/heatmap.r "$mouCls" "$classPDF" "$classMain" "$mouFam" "$familyPDF" "$familyMain" "$mouNam" "$namePDF" "$nameMain"
+
+
+

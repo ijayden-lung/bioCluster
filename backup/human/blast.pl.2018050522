@@ -1,0 +1,32 @@
+#!/usr/bin/perl
+use diagnostics;
+
+$query  = 'AAAATGTATATATACTTTTGTCTTGGAGCTGATTCTACTAGAAAGCAGAA';
+#$query = 'AGCGCACCAGGCCACCCCGGTCACGGCCGCCTGCCACCCACTGACCCTG';
+
+$query  = 'CTAAAACCAAGGGCGGGAGGGGGACGGGGCTGCCGGCAGCCCTCCCAG';
+$k = 0;
+while ( $k + 10 < length $query ) {
+    $q[$k] = uc substr( $query, $k, 11 );
+    open FILE2, '/2_disk/longyk/blastlib/' . $q[$k];
+    @myfield = split /;/, <FILE2>;
+    close FILE2;
+    foreach my $field (@myfield) {
+	@place = split /\s+/, $field;
+	$ERR{ $place[0] }{ $place[1] - $k }++;
+    }
+    $k++;
+}
+foreach my $key1 ( keys %ERR ) {
+    open FILE1, '/2_disk/longyk/workspace/' . $key1 . '.fa'
+	or die "Could not open file 'FILE1' $!";
+    $seq = <FILE1>;
+    foreach $key2 ( keys %{ $ERR{$key1} } ) {
+	if ( $ERR{$key1}{$key2} > 10 ) {
+	    $string = substr( $seq, $key2, length $query );
+	    print "$string\n";
+	    print "$key1: $key2\n";
+	}
+    }
+    close FILE1;
+}

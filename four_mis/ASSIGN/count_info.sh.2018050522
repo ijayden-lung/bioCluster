@@ -1,0 +1,18 @@
+#!/bin/bash
+:<<BL
+echo RM Mouse
+samtools view -f 67 mm10_SRR2919540_ens/Aligned.sortedByCoord.out.bam | awk 'BEGIN{n=0};($3 == "chrX"){n++};END{print n}'
+echo RM Rat
+samtools view -f 67 rn6_SRR2919540_ens/Aligned.sortedByCoord.out.bam | awk 'BEGIN{n=0};($3 == "chrX"){n++};END{print n}'
+echo MR Mouse
+samtools view -f 67 mm10_SRR2919542_ens/Aligned.sortedByCoord.out.bam | awk 'BEGIN{n=0};($3 == "chrX"){n++};END{print n}'
+echo MR Rat
+samtools view -f 67 rn6_SRR2919542_ens/Aligned.sortedByCoord.out.bam | awk 'BEGIN{n=0};($3 == "chrX"){n++};END{print n}'
+echo MMOCK Mouse
+samtools view -f 67 mm10_SRR2919544_ens/Aligned.sortedByCoord.out.bam | awk 'BEGIN{n=0};($3 == "chrX"){n++};END{print n}'
+echo MOCK Rat
+samtools view -f 67 rn6_SRR2919544_ens/Aligned.sortedByCoord.out.bam | awk 'BEGIN{n=0};($3 == "chrX"){n++};END{print n}'
+BL
+
+
+samtools view -f 67  mm10_SRR2919536_ens/Aligned.sortedByCoord.out.bam | awk 'BEGIN{a=0;m=0;x=0;ma=0;mm=0;mx=0}; {if($5 == 255){if($3 ~ /chr[0-9]+/)a++; else if($3 == "chrM")m++; else if($3 == "chrX")x++};else if($13 == "HI:i:0"){if($3 ~ /chr[0-9]+/)ma++; else if($3 == "chrM")mm++; else if($3 == "chrX")mx++};};END{print a,m,x,ma,mm,mx}' 

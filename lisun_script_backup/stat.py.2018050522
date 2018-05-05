@@ -1,0 +1,56 @@
+#!/usr/bin/python
+
+import pandas as pd
+#import matplotlib.pyplot as plt
+#import seaborn as sns
+import numpy as np
+import scipy
+from scipy import stats
+import math
+
+df=pd.read_table('/home/lyk/Gra_Pro/lisun_script/table_QC_filter_readcount.tsv')
+
+df2=pd.DataFrame({'Gene':df.gene_id,})
+df2.insert(1,"RM_M_Hits",df.RM_M_Hits)
+df2.insert(2,"RM_M_Hits_adj",df.RM_M_Hits)
+df2.insert(3,"RM_R_Hits",df.RM_R_Hits)
+df2.insert(4,"RM_R_Hits_adj",df.RM_R_Hits)
+df2.insert(5,"RM_Bin_pvalues",0.000000000)
+df2.insert(6,"RM_Bin_qvalues",0.000000000)
+df2.insert(7,"RM_total",df2.RM_M_Hits_adj+df2.RM_R_Hits_adj)
+df2.insert(8,"Par_M_Hits",df.Par_M_Hits)
+df2.insert(9,"Par_R_Hits",df.Par_R_Hits)
+df2.insert(10,"Par_R_Hits_adj",df.Par_R_Hits)
+df2.insert(11,"Par_M_Hits_Norm",df.Par_M_Hits*1.617)
+df2.insert(12,"Par_M_Hits_Norm_adj",df.Par_M_Hits*1.617)
+df2.insert(13,"Par_Bin_pvalues",0.000000000)
+df2.insert(14,"Par_Bin_qvalues",0.000000000)
+df2.insert(15,"FET_pvalues",0.000000000)
+df2.insert(16,"FET_qvalues",0.000000000)
+df2.insert(17,"Significant_Cis",0)
+df2.insert(18,"Significant_Trans",0)
+df2.insert(19,"Log2_RM_MR",0.000000000)
+df2.insert(20,"Log2_Par_MR",0.000000000)
+df2.insert(21,"Cis_Mag",0)
+df2.insert(22,"Trans_Mag",0)
+df2.insert(23,"Pct_cis",0)
+
+for i in range(df2.shape[0]):
+    if df2.RM_M_Hits_adj[i] ==0:
+        df2.RM_M_Hits_adj[i]=1
+    if df2.RM_R_Hits_adj[i] ==0:
+        df2.RM_R_Hits_adj[i]=1
+    if df2.Par_R_Hits_adj[i] ==0:
+        df2.Par_R_Hits_adj[i]=1
+    if df2.Par_M_Hits_Norm_adj[i] ==0:
+        df2.Par_M_Hits_Norm_adj[i]=1
+
+    df2.Log2_RM_MR[i]=math.log(df2.RM_M_Hits_adj[i]/df2.RM_R_Hits_adj[i],2)
+    df2.Log2_Par_MR[i]=math.log(df2.Par_M_Hits_Norm_adj[i]/df2.Par_R_Hits_adj[i],2)
+
+    df2.Par_Bin_pvalues[i]=scipy.stats.binom_test((df2.Par_M_Hits_Norm[i],df2.Par_R_Hits[i]), p=0.5, alternative='two-sided')
+    df2.FET_pvalues[i]=stats.fisher_exact([[df2.RM_M_Hits[i],df2.RM_R_Hits[i]],[df2.Par_M_Hits_Norm[i],df2.Par_R_Hits[i]]],\
+                                                   alternative='two-sided')[1]
+    df2.RM_Bin_pvalues[i]=scipy.stats.binom_test((df2.RM_M_Hits[i],df2.RM_R_Hits[i]), p=0.5, alternative='two-sided')
+
+df2.to_csv(path_or_buf="/home/lyk/Gra_Pro/lisun_script/stat_output.tsv",sep="\t")

@@ -1,0 +1,67 @@
+#!/usr/bin/perl -w
+#
+&after_assign;
+
+sub before_assign{
+	open FILE, ">Final_info.out";
+	print FILE "Sample\tSpecies\tUnique\tMulti\n";
+	foreach my $file (glob "/data1/lisun/fusion_cell/STAR/mm10*/Log.final.out"){
+		my ($sample) = (split /\//,$file)[5];
+		my ($species,$tissue,$constant,$lane) = split /\_/,$sample;
+		my $unique = `awk -F "|"  '(NR == 9) {print \$2}' $file`;
+		my $multi = `awk -F "|"  '(NR == 24) {print \$2}' $file`;
+		my $total = `awk -F "|"  '(NR == 6) {print \$2}' $file`;
+		$total =~ s/\s+//g;
+		$unique =~ s/\s+|\%//g;
+		$multi =~ s/\s+|\%//g;
+		my $peruni = $unique/$total*100;
+		my $permul = $multi/$total*100;
+		printf FILE ("%s\t%s\t%d (%.2f%s)\t%d (%.2f%s)\n",  "$tissue\_$lane","mm10",$unique,$peruni,"%",$multi,$permul,"%");
+		$file = "/data1/lisun/fusion_cell/STAR/rn6_$tissue\_$constant\_$lane/Log.final.out";
+		$unique = `awk -F "|"  '(NR == 9) {print \$2}' $file`;
+		$multi = `awk -F "|"  '(NR == 24) {print \$2}' $file`;
+		$total = `awk -F "|"  '(NR == 6) {print \$2}' $file`;
+		$total =~ s/\s+//g;
+		$unique =~ s/\s+|\%//g;
+		$multi =~ s/\s+|\%//g;
+		$peruni = $unique/$total*100;
+		$permul = $multi/$total*100;
+		printf FILE ("%s\t%s\t%d (%.2f%s)\t%d (%.2f%s)\n",  "$tissue\_$lane","rn6",$unique,$peruni,"%",$multi,$permul,"%");
+	}
+}
+
+
+sub after_assign{
+	open FILE, ">Final_assign_info.out";
+	print FILE "Sample\tSpecies\tUnique_A\tUnique_M\tUnique_X\tMulti_A\tMulti_M\tMulti_X\n";
+	foreach my $file (glob "/data1/lisun/fusion_cell/STAR/mm10*/Log.final.out"){
+		my ($sample) = (split /\//,$file)[5];
+		my ($species,$tissue,$constant,$lane) = split /\_/,$sample;
+		my $total = `awk -F "|"  '(NR == 6) {print \$2}' $file`;
+		$total =~ s/\s+//g;
+
+
+		$file="/data1/lisun/fusion_cell/STAR/assigned/mm10_$tissue\_$constant\_$lane.sam";
+		$info = `samtools view -f 67 $file | awk 'BEGIN{ua=0;um=0;ux=0;ma=0;mm=0;mx=0;};{if(\$5 == "255"){if(\$3 ~ /chr[0-9]+/){ua++;}else if(\$3 == "chrM"){um++;}else if(\$3 == "chrX"){ux++;}}else if (\$13 == "HI:i:0"){if(\$3 ~ /chr[0-9]+/){ma++;}else if(\$3 == "chrM"){mm++;}else if(\$3 == "chrX"){mx++;}}};END{print ua,um,ux,ma,mm,mx}'`;
+		my ($ua,$um,$ux,$ma,$mm,$mx) = split /\s+/,$info;
+		$perua = $ua/$total*100;
+		$perum = $um/$total*100;
+		$perux = $ux/$total*100;
+		$perma = $ma/$total*100;
+		$permm = $mm/$total*100;
+		$permx = $mx/$total*100;
+		printf FILE ("%s\t%s\t%d (%.2f%s)\t%d (%.2f%s)\t%d (%.2f%s)\t%d (%.2f%s)\t%d (%.2f%s)\t%d (%.2f%s)\n",  "$tissue\_$lane","mm10",$ua,$perua,"%",$um,$perum,"%",$ux,$perux,"%",$ma,$perma,"%",$mm,$permm,"%",$mx,$permx,"%");
+
+		
+		$file="/data1/lisun/fusion_cell/STAR/assigned/rn6_$tissue\_$constant\_$lane.sam";
+		$info = `samtools view -f 67 $file | awk 'BEGIN{ua=0;um=0;ux=0;ma=0;mm=0;mx=0;};{if(\$5 == "255"){if(\$3 ~ /chr[0-9]+/){ua++;}else if(\$3 == "chrM"){um++;}else if(\$3 == "chrX"){ux++;}}else if (\$13 == "HI:i:0"){if(\$3 ~ /chr[0-9]+/){ma++;}else if(\$3 == "chrM"){mm++;}else if(\$3 == "chrX"){mx++;}}};END{print ua,um,ux,ma,mm,mx}'`;
+		($ua,$um,$ux,$ma,$mm,$mx) = split /\s+/,$info;
+		$perua = $ua/$total*100;
+		$perum = $um/$total*100;
+		$perux = $ux/$total*100;
+		$perma = $ma/$total*100;
+		$permm = $mm/$total*100;
+		$permx = $mx/$total*100;
+		printf FILE ("%s\t%s\t%d (%.2f%s)\t%d (%.2f%s)\t%d (%.2f%s)\t%d (%.2f%s)\t%d (%.2f%s)\t%d (%.2f%s)\n",  "$tissue\_$lane","rn6",$ua,$perua,"%",$um,$perum,"%",$ux,$perux,"%",$ma,$perma,"%",$mm,$permm,"%",$mx,$permx,"%");
+	}
+}

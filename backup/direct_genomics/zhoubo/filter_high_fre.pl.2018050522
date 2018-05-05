@@ -1,0 +1,26 @@
+#!/usr/bin/perl -w
+
+foreach my $file (glob "/1/longyk/direct_genomics/zhoubo/final_result/*txt"){
+	my $index = rindex ($file,"/");
+	my $basename = substr($file,$index+1,-4);
+	my $dir      = substr($file,0,$index+1);
+	open FILE, $file;
+	my $all = 0;
+	my $filter = 0;
+	open FILE2, ">$dir$basename"."_filter.txt";
+	my $head = <FILE>;
+	print FILE2 $head;
+	while(<FILE>){
+		chomp;
+		my ($fre) = (split /\t/)[-4];
+		my $ratio = substr($fre,0,-1);
+		$all++;
+		if($ratio>1){
+			$filter++;
+			print FILE2 "$_\n";
+		}
+	}
+	print "$basename:\t$filter\t$all\n";
+	
+}
+

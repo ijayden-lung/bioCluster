@@ -1,0 +1,38 @@
+#!/bin/bash
+
+cat >star.sh << EOF
+#!/bin/bash
+#PBS -q batch
+#PBS -N STAR
+#PBS -l nodes=1:ppn=32
+#PBS -o \${log}
+#PBS -j oe 
+#PBS -l host=compute-0-10
+
+mkdir \${out_dir}
+cd \$out_dir
+
+STAR --twopassMode Basic --runThreadN 28 --outBAMsortingThreadN 28 --genomeDir /home/lyk/data1/cnda/STAR_INDEX/ensembl/\$spe  --scoreDelOpen 1000 -scoreInsOpen 1000   --readFilesIn \$fq1 \$fq2 --outSAMtype BAM SortedByCoordinate --outSAMattrIHstart 0  --outFilterMultimapScoreRange 0 --alignEndsType EndToEnd --alignSJDBoverhangMin 6 --outFilterMismatchNmax 8
+
+####INDEX for sorted bam file
+samtools index -@ 28 Aligned.sortedByCoord.out.bam
+
+#python -m HTSeq.scripts.count --mode=union -r pos --stranded=no -f bam  Aligned.sortedByCoord.out.bam /home/lyk/data1/cnda/ensembl/hg38.ensemblv88.nopsuedo.gtf  >htseq.union.count
+
+EOF
+
+species=(mm10 rn6)
+for sam in /data1/lyk/chenlab/fastq/*1.clean.fq
+do
+	fq1=$sam
+	fq2=${sam%1*}2.clean.fq
+	
+	for spe in ${species[*]}
+	do	
+		out_dir=/home/lyk/data1/chenlab/STAR/${spe}_$sam
+		log=log_$sam
+		qsub -v out_dir=$out_dir,log=$log,fq1=$fq1,fq2=$fq2,spe=$spe star.sh
+	done
+done
+
+

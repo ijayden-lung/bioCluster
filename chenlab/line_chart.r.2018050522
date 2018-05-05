@@ -1,0 +1,20 @@
+#!/usr/bin/Rscript
+
+pdf("6mers.pdf")
+layout(matrix(c(1,2),nrow=1,byrow=T))
+
+	
+read.table("/home/lyk/data1/chenlab/mm10_6_mer.txt",header=FALSE,sep="\t") -> data
+data2 = data[1:100,2]
+
+plot(data$Cut_Reads, data2, main ="Cut From Tail", xlab = "Cut_Reads", ylab = "Log10 (Numbers)",lab=c(20,8,7),xlim = c(0,104),col="red",bg="yellow")
+#sp=spline(data$Cut_Reads,log10(data$Numbers),n=1000)
+#lines(sp,col="red",type="l")
+#grid()
+
+
+#read.table("/home/lyk/data1/clean_data/tail.txt",header=TRUE,sep="\t") -> data
+#plot(data$Cut_Reads, log10(data$Numbers), main ="Cut From Tail", xlab = "Cut_Reads", ylab = "Log10 (Numbers)",lab=c(20,8,7),xlim = c(0,104),col="red",bg="yellow")
+#sp=spline(data$Cut_Reads,log10(data$Numbers),n=1000)
+#lines(sp,col="red",type="l")
+#grid()

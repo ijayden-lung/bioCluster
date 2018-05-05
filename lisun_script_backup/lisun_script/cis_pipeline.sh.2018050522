@@ -1,0 +1,44 @@
+#!/bin/bash
+
+ORT=/home/lyk/data1/cnda/ortholog/mouse2rat_ensembl.ort
+QC=/home/lyk/Gra_Pro/lisun_script/table_QC_filter_FPKM.tsv
+RC1=/home/lisun/prog/R/bin/countdata_mouse_constit.csv
+RC2=/home/lisun/prog/R/bin/countdata_rat_constit.csv
+OUT=/home/lyk/Gra_Pro/lisun_script/table_QC_filter_readcount.tsv
+perl generate_table_readcount.pl "$ORT" "$QC" "$RC1" "$RC2" "$OUT"
+
+INT=/home/lyk/Gra_Pro/lisun_script/table_QC_filter_readcount.tsv
+info=/home/lyk/Gra_Pro/STAR/Final_info.out
+out=`perl norm_par2.pl "$info"`
+arr=(${out//\t/ })
+hyb=("RM" "MR" "MOCK")
+a=0
+qvalue_cut=(0.001 0.005 0.01)
+for i in ${arr[@]}  
+do 
+	arr2=(${i//,/ })
+	echo ${hyb[$a]} ${arr2[0]} ${arr2[1]}
+	perl calculate_pvalue.pl "$INT" "/home/lyk/Gra_Pro/lisun_script/table_QC_filter_cis_trans_${hyb[$a]}.tsv"  "${hyb[$a]}" "${arr2[0]}" "${arr2[1]}"
+	###### To calculate qvalue, R should be updated to the newest version
+	#Rscript qvalue.r   ##### Calculate qvaule in local
+
+
+	for q in ${qvalue_cut[*]}
+	do
+		echo
+		echo qvalue cut = $q hyb = ${hyb[$a]}
+		#perl cis_trans_sorter.pl "/home/lyk/Gra_Pro/lisun_script/table_qvalue_QC_filter_cis_trans_${hyb[$a]}.tsv"  "${hyb[$a]}"  "$q"
+	done
+	a=`expr $a+1`
+done
+
+threshold=(0.05 0.1 0.2 0.3 0.4)
+rm summarize.tsv
+for t in ${threshold[*]}
+do
+	for q in ${qvalue_cut[*]}
+	do
+		#perl combine.pl "$q" "$t"
+		#perl summarize.pl "Combine_${q}_${t}.tsv" >>summarize.tsv
+	done
+done

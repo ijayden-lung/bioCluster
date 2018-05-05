@@ -1,0 +1,9 @@
+cd ../vcf2/avinput
+mkdir annovar_out
+for i in *avinput
+do
+
+	echo $i
+	table_annovar.pl $i /1/longyk/annovar/humandb/ -buildver hg19 -out annovar_out/${i%.*} -remove -otherinfo -protocol refGene,cosmic78,1000g2015aug_all,1000g2015aug_eas,snp138,clinvar_20160302 -operation g,f,f,f,f,f -nastring .
+
+done

@@ -1,0 +1,44 @@
+#!/user/bin/perl
+open FILE,
+    '/1_disk/public_resources/bowtie2-2.2.4/example/reference/lambda_virus.fa';
+
+#open FILE, 'E:\Undergraduate\Junior\Bioinformatics\lambda_virus.fa';
+$sequence = <FILE>;
+$sequence = "";
+while (<FILE>) {
+    chomp $_;
+    $sequence .= $_;
+}
+
+##here is the sequence of the whole genome with $ tail.
+$sequence .= "\$";
+
+$seq = substr( $sequence, 0, 200 );
+$hash{$seq} = "\$ 0";
+$i          = 1;
+$length     = length($sequence);
+print "length: $length";
+while ( $i < $length - 199 ) {
+    $seq = substr( $sequence, $i, 200 );
+    $base = substr( $sequence, $i - 1, 1 );
+    $hash{$seq} = "$base $i";
+    $i++;
+}
+$j = 1;
+while ( $i < $length ) {
+    $seq = substr( $sequence, $i, 200 - $j ) . substr( $sequence, 0, $j );
+    $base = substr( $sequence, $i - 1, 1 );
+    $hash{$seq} = "$base $i";
+    $j++;
+    $i++;
+}
+$i = 1;
+open FILE1, '>/home/longyk/bwtresult.txt';
+open FILE2, '>/home/longyk/location.txt';
+foreach $key ( sort( keys %hash ) ) {
+    @array = split (/ /,$hash{$key});
+    print FILE1 "$array[0]";
+    print FILE2 "$array[1] ";
+    $i++;
+}
+

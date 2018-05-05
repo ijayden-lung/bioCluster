@@ -1,0 +1,61 @@
+#!/usr/bin/perl -w
+
+open FILE,'NonMiR.txt';
+<FILE>;
+my %count;
+while(<FILE>){
+	chomp;
+	my @data = split;
+	my $seq = shift @data;
+	$count{$seq} = \@data;
+}
+
+open FILE,'BlastResult.tsv';
+my $i = 0;
+my %hash;
+while(<FILE>){
+	chomp;
+	my @data = split;
+	my $seq = shift @data;
+	$hash{$seq} = \@data;
+}
+
+
+open FILE,'BlastResult.tsv';
+my %hash2;
+my %hash3;
+while(<FILE>){
+	chomp;
+	my @data = split;
+	my $seq = shift @data;
+	if(exists $hash{$seq}){
+		my @gene_list =sort  @{$hash{$seq}};
+		delete $hash{$seq};
+		my $gene = join ",",@gene_list;
+		$hash2{$gene}->{$seq} = '';
+		$hash3{$gene} = $count{$seq};
+		while(my ($key,$val) = each %hash){
+			my @data = sort @$val;
+			if(@gene_list ~~ @data){
+				$hash2{$gene}->{$key} = '';
+				my $count = $count{$key};
+				for(my $i=0;$i< @$count;$i++){
+					$hash3{$gene}->[$i] += $count->[$i];
+				}
+				delete $hash{$key};
+			}
+		}
+	}
+}
+
+while(my ($key,$val) = each %hash2){
+	my @seq = keys %$val;
+	#print "$key\t@seq\n";
+}
+
+open OUT,'>Expression_NonMiR.tsv';
+print OUT "Gene\tSH1\tSH2\tSL1\tSL2\n";
+while(my ($key,$val) = each %hash3){
+	print OUT join "\t",$key,@$val;
+	print OUT "\n";
+}

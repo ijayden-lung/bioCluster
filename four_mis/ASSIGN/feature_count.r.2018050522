@@ -1,0 +1,15 @@
+#!/home/lisun/prog/R/bin/Rscript
+#PBS -q batch
+#PBS -N featureCounts
+#PBS -l nodes=4:ppn=2
+#PBS -o /data1/lyk/four_mis/ASSIGN/log_featureCounts_multi_rn6
+#PBS -j oe 
+
+library(Rsubread)
+
+files=c("/data1/lyk/four_mis/ASSIGN/rn6_SRR2919538_ens/multiple.sorted.bam","/data1/lyk/four_mis/ASSIGN/rn6_SRR2919540_ens/multiple.sorted.bam","/data1/lyk/four_mis/ASSIGN/rn6_SRR2919542_ens/multiple.sorted.bam");
+
+featureCounts(files,annot.ext="/data1/lyk/cnda/refSeq/rn6.repeatMasker.gtf",isGTFAnnotationFile=TRUE,GTF.featureType="exon",GTF.attrType="gene_id",useMetaFeatures=TRUE, countMultiMappingReads=TRUE, fraction=TRUE,isPairedEnd=TRUE,requireBothEndsMapped=TRUE,nthreads=8)
+
+
+#featureCounts(files,annot.ext="/data1/lyk/cnda/refSeq/rn6.repeatMasker.gtf",isGTFAnnotationFile=TRUE,GTF.featureType="exon",GTF.attrType="gene_id",useMetaFeatures=TRUE,isPairedEnd=TRUE,requireBothEndsMapped=TRUE,nthreads=8)

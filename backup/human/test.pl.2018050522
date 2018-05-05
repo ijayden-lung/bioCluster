@@ -1,0 +1,11 @@
+#!/usr/bin/perl
+open FILE, '/2_disk/longyk/human/chr21.fa';
+$a = <FILE>;
+print "Enter:\n";
+$d = <>;
+print "Enter:\n";
+$e = <>;
+$b = substr($a,$d,50);
+$c = substr($a,$e,50);
+
+print "$b\n$c\n";

@@ -1,0 +1,59 @@
+#!/usr/bin/perl -w
+#
+#
+#
+&table("rn6");
+sub table{
+	my %hash;
+
+	if ($_[0] eq "mm10"){
+		$spe = "M";
+		$sam = "SRR2919536";
+	}
+	elsif($_[0] eq "rn6"){
+		$sam = "SRR2919538";
+		$spe = "R";
+	}
+	open FILE, "/data1/lyk/four_mis/ASSIGN/rn6_SRR2919538_ens/rmsk_gene_abund.tab";
+	<FILE>;
+	while(<FILE>){
+		chomp;
+		my @data = split;
+		$hash{$data[0]}->[0] += $data[-1];
+	}
+
+
+	open FILE2, "/data1/lyk/four_mis/ASSIGN/rn6_SRR2919540_ens/rmsk_gene_abund.tab";
+	<FILE2>;
+	while(<FILE2>){
+		chomp;
+		my @data = split;
+		$hash{$data[0]}->[1] += $data[-1];
+	}
+
+
+	open FILE3, "/data1/lyk/four_mis/ASSIGN/rn6_SRR2919542_ens/rmsk_gene_abund.tab";
+	<FILE3>;
+	while(<FILE3>){
+		chomp;
+		my @data = split;
+		$hash{$data[0]}->[2] += $data[-1];
+	}
+
+
+	open FILE4, "/data1/lyk/four_mis/ASSIGN/rn6_SRR2919544_ens/rmsk_gene_abund.tab";
+	<FILE4>;
+	while(<FILE4>){
+		chomp;
+		my @data = split;
+		$hash{$data[0]}->[3] += $data[-1];
+	}
+
+
+	open FILE5, ">/data1/lyk/four_mis/ASSIGN/rn6_rmsk_tpm.tsv";
+	print FILE5 "Gene\tR\tRM\tMR\tMOCK\n";
+	while(my ($key,$value) = each %hash){
+		print FILE5 "$key\t$value->[0]\t$value->[1]\t$value->[2]\t$value->[3]\n";
+	}
+
+}

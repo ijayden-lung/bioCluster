@@ -1,0 +1,10 @@
+for i in *new
+do
+
+	echo $i
+
+	paste -d "," $i hs_out/${i%_*} >${i%_*}_hs.csv
+
+
+
+done

@@ -1,0 +1,513 @@
+#!/usr/bin/perl -w
+
+open SAM,   '/2_disk/longyk/RNAseq/sortUni9.sam';
+open JOIN,  '>/2_disk/longyk/RNAseq/joinUni9.sam';
+
+open CHR1,  '/2_disk/longyk/human/chr1.fa';
+open CHR2,  '/2_disk/longyk/human/chr2.fa';
+open CHR3,  '/2_disk/longyk/human/chr3.fa';
+open CHR4,  '/2_disk/longyk/human/chr4.fa';
+open CHR5,  '/2_disk/longyk/human/chr5.fa';
+open CHR6,  '/2_disk/longyk/human/chr6.fa';
+open CHR7,  '/2_disk/longyk/human/chr7.fa';
+open CHR8,  '/2_disk/longyk/human/chr8.fa';
+open CHR9,  '/2_disk/longyk/human/chr9.fa';
+open CHR10, '/2_disk/longyk/human/chr10.fa';
+open CHR11, '/2_disk/longyk/human/chr11.fa';
+open CHR12, '/2_disk/longyk/human/chr12.fa';
+open CHR13, '/2_disk/longyk/human/chr13.fa';
+open CHR14, '/2_disk/longyk/human/chr14.fa';
+open CHR15, '/2_disk/longyk/human/chr15.fa';
+open CHR16, '/2_disk/longyk/human/chr16.fa';
+open CHR17, '/2_disk/longyk/human/chr17.fa';
+open CHR18, '/2_disk/longyk/human/chr18.fa';
+open CHR19, '/2_disk/longyk/human/chr19.fa';
+open CHR20, '/2_disk/longyk/human/chr20.fa';
+open CHR21, '/2_disk/longyk/human/chr21.fa';
+open CHR22, '/2_disk/longyk/human/chr22.fa';
+open CHRY,  '/2_disk/longyk/human/chrY.fa';
+open CHRX,  '/2_disk/longyk/human/chrX.fa';
+open CHRM,  '/2_disk/longyk/human/chrM.fa';
+my $t1 = time();
+$chr1  = <CHR1>;
+$chr2  = <CHR2>;
+$chr3  = <CHR3>;
+$chr4  = <CHR4>;
+$chr5  = <CHR5>;
+$chr6  = <CHR6>;
+$chr7  = <CHR7>;
+$chr8  = <CHR8>;
+$chr9  = <CHR9>;
+$chr10 = <CHR10>;
+$chr11 = <CHR11>;
+$chr12 = <CHR12>;
+$chr13 = <CHR13>;
+$chr14 = <CHR14>;
+$chr15 = <CHR15>;
+$chr16 = <CHR16>;
+$chr17 = <CHR17>;
+$chr18 = <CHR18>;
+$chr19 = <CHR19>;
+$chr20 = <CHR20>;
+$chr21 = <CHR21>;
+$chr22 = <CHR22>;
+$chrX  = <CHRX>;
+$chrY  = <CHRY>;
+$chrM  = <CHRM>;
+my $t2 = time();
+my $t  = $t2 - $t1;
+print "time for write reference $t s\n";
+
+
+for ( my $i = 1 ; $i < 28 ; $i++ ) {
+	my $line = <SAM>;
+	print JOIN $line;
+}
+
+my $line1 = 0;
+my $line2;
+my $line3;
+my $line4;
+
+while () {
+	$line1 = <SAM>;
+	last if !( defined $line1 );
+	$line2 = <SAM>;
+	$line3 = <SAM>;
+	$line4 = <SAM>;
+	my @Line1 = split /\t/, $line1;
+	my @Line2 = split /\t/, $line2;
+	my @Line3 = split /\t/, $line3;
+	my @Line4 = split /\t/, $line4;
+	my $gap1  = $Line2[3] - $Line1[3] - 25;
+	my $gap2  = $Line3[3] - $Line2[3] - 25;
+	my $gap3  = $Line4[3] - $Line3[3] - 25;
+	my $gap1_r = $Line3[3] - $Line4[3] - 25;
+	my $gap2_r = $Line2[3] - $Line3[3] - 25;
+	my $gap3_r = $Line1[3] - $Line2[3] - 25;
+
+	####### CASE1
+	if ( $Line1[2] eq $Line4[2] ){
+		if( $Line2[2] eq $Line1[2] && $Line3[2] eq $Line1[2]){
+			if($Line1[1] == 0 && $Line2[1] == 0 && $Line3[1] == 0 && $Line4[1] ==0){
+				##############################################################################
+				if($gap1>=0 && $gap1<=20000 && $gap2>=0 && $gap2<=20000 && $gap3>=0 && $gap3<=20000){
+				     my $print = &CASE1( \@Line1, \@Line2, \@Line3, \@Line4, $gap1, $gap2, $gap3 );
+		             print JOIN $print;
+			   }
+			   
+			   elsif(($gap1<0 || $gap1>20000) && $gap2>=0 && $gap2<=20000 && $gap3>=0 && $gap3<=20000){
+			   	    my $print = &CASE2( \@Line1, \@Line2, \@Line3, \@Line4, $gap1, $gap2, $gap3 );
+		            print JOIN $print;
+			   }
+			   
+			   elsif(($gap3<0 || $gap3>20000) && $gap2>=0 && $gap2<=20000 && $gap1>=0 && $gap1<=20000){
+			   	    my $print = &CASE3( \@Line1, \@Line2, \@Line3, \@Line4, $gap1, $gap2, $gap3 );
+		            print JOIN $print;
+			   }
+			   
+			   elsif(($gap1<0 || $gap1>20000) && ($gap2<0 || $gap2>20000) && $gap3>=0 && $gap3<=20000){
+			   	    my $print = &CASE4( \@Line1, \@Line2, \@Line3, \@Line4,$gap3 );
+		            print JOIN $print;
+			   }
+			   
+			    elsif(($gap3<0 || $gap3>20000) && ($gap2<0 || $gap2>20000) && $gap1>=0 && $gap1<=20000){
+			   	    my $print = &CASE5( \@Line1, \@Line2, \@Line3, \@Line4, $gap1 );
+		            print JOIN $print;
+			   }
+			 #############################################################################  
+			}
+			
+			
+			##################  THE FLAG IS DIFFERENT ################################
+			elsif($Line1[1] == 0 && $Line2[1] != 0 && $Line3[1] == 0 && $Line4[1] ==0){
+				if($gap3>=0 && $gap3<=20000){
+					my $print = &CASE4( \@Line1, \@Line2, \@Line3, \@Line4,$gap3 );
+		            print JOIN $print;
+				}
+			}
+			
+			elsif($Line1[1] == 0 && $Line2[1] == 0 && $Line3[1] != 0 && $Line4[1] ==0){
+				if($gap1 >=0 && $gap1<=20000){
+					my $print = &CASE5( \@Line1, \@Line2, \@Line3, \@Line4, $gap1 );
+		            print JOIN $print;
+				}
+			}
+			
+			elsif($Line1[1] == 16 && $Line2[1] == 16 && $Line3[1] != 16 && $Line4[1] == 16){
+				if($gap3_r >=0 && $gap3_r<=20000){
+					my $print = &CASE4( \@Line4, \@Line3, \@Line2, \@Line1, $gap3_r );
+		            print JOIN $print;
+				}
+			}
+			
+			elsif($Line1[1] == 16 && $Line2[1] != 16 && $Line3[1] == 16 && $Line4[1] == 16){
+				if($gap1_r >=0 && $gap1_r<=20000){
+					my $print = &CASE5( \@Line4, \@Line3, \@Line2, \@Line1, $gap1_r );
+		            print JOIN $print;
+				}
+			}
+			###############   THE FLAG IS DIFFERENT END   ##########################
+			
+			
+			
+			elsif($Line1[1] == 16 && $Line2[1] == 16 && $Line3[1] == 16 && $Line4[1] == 16){
+				if($gap1_r>=0 && $gap1_r<=20000 && $gap2_r>=0 && $gap2_r<=20000 && $gap3_r>=0 && $gap3_r<=20000){
+				    my $print = &CASE1( \@Line4, \@Line3, \@Line2, \@Line1, $gap1_r, $gap2_r, $gap3_r );
+		            print JOIN $print;
+			    }
+			    
+			    elsif(($gap1_r<0 || $gap1_r>20000) && $gap2_r>=0 && $gap2_r<=20000 && $gap3_r>=0 && $gap3_r<=20000){
+			   	    my $print = &CASE2( \@Line4, \@Line3, \@Line2, \@Line1, $gap1_r, $gap2_r, $gap3_r );
+		            print JOIN $print;
+			   }
+			   
+			   elsif(($gap3_r<0 || $gap3_r>20000) && $gap2_r>=0 && $gap2_r<=20000 && $gap1_r>=0 && $gap1_r<=20000){
+			   	    my $print = &CASE3( \@Line4, \@Line3, \@Line2, \@Line1, $gap1_r, $gap2_r, $gap3_r );
+		            print JOIN $print;
+			   }
+			   
+			   elsif(($gap1_r<0 || $gap1_r>20000) && ($gap2_r<0 || $gap2_r>20000) && $gap3_r>=0 && $gap3_r<=20000){
+			   	    my $print = &CASE4( \@Line4, \@Line3, \@Line2, \@Line1, $gap3_r );
+		            print JOIN $print;
+			   }
+			   elsif(($gap3_r<0 || $gap3_r>20000) && ($gap2_r<0 || $gap2_r>20000) && $gap1_r>=0 && $gap1_r<=20000){    
+					my $print = &CASE5( \@Line4, \@Line3, \@Line2, \@Line1, $gap1_r );
+		            print JOIN $print;
+			   }
+			}	
+		}
+		
+		######THE CHROMSOME IS DIFFERENT	#########################
+		elsif($Line2[2] ne $Line1[2] && $Line3[2] eq $Line1[2]){
+			if($Line1[1] == 0 && $Line3[1] == 0 && $Line4[1] ==0){
+				if($gap3 >=0 && $gap3<=20000){
+					my $print = &CASE4( \@Line1, \@Line2, \@Line3, \@Line4, $gap3 );
+		            print JOIN $print;
+				}
+			}
+			elsif($Line1[1] == 16 && $Line3[1] == 16 && $Line4[1] ==16){
+				if($gap1_r >=0 && $gap1_r<=20000){
+					my $print = &CASE5( \@Line4, \@Line3, \@Line2, \@Line1, $gap1_r );
+		            print JOIN $print;
+				}
+			}
+		}
+		elsif($Line3[2] ne $Line1[2] && $Line2[2] eq $Line1[2]){
+			if($Line1[1] == 0 && $Line2[1] == 0 && $Line4[1] ==0){
+				if($gap1>=0 && $gap1<=20000){
+					my $print = &CASE5( \@Line1, \@Line2, \@Line3, \@Line4, $gap1 );
+		            print JOIN $print;
+				}
+			}
+			elsif($Line1[1] == 16 && $Line2[1] == 16 && $Line4[1] == 16){
+				if($gap3_r >=0 && $gap3_r<=20000){
+					my $print = &CASE4( \@Line4, \@Line3, \@Line2, \@Line1, $gap3_r );
+		            print JOIN $print;
+				}
+			}
+		}
+		###########	THE CHROMSOME IS DIFFERENT END
+	}
+	
+	########################################################
+	elsif($Line2[2] eq $Line4[2] && $Line3[2] eq $Line4[2]){
+	     if($Line2[1] == 0 && $Line3[1] == 0 && $Line4[1] ==0 ){
+	     	if($gap2>=0 && $gap2<=20000 && $gap3>=0 && $gap3<=20000){
+	     		my $print = &CASE2( \@Line1, \@Line2, \@Line3, \@Line4, $gap1, $gap2, $gap3 );
+		        print JOIN $print;
+	     	}
+	     }
+	     elsif($Line2[1] == 16 && $Line3[1] == 16 && $Line4[1] == 16){
+	     	if($gap2_r>=0 && $gap2_r<=20000 && $gap1_r>=0 && $gap1_r<=20000){
+	     		my $print = &CASE3( \@Line4, \@Line3, \@Line2, \@Line1, $gap1_r, $gap2_r, $gap3_r );
+		        print JOIN $print;
+	     	}
+	     }
+	}
+	
+	elsif($Line2[2] eq $Line1[2] && $Line3[2] eq $Line1[2]){
+	     if($Line2[1] == 0 && $Line3[1] == 0 && $Line1[1] ==0 ){
+	     	 if($gap2>=0 && $gap2<=20000 && $gap1>=0 && $gap1<=20000){
+	     	 	my $print = &CASE3( \@Line1, \@Line2, \@Line3, \@Line4, $gap1, $gap2, $gap3 );
+		        print JOIN $print;
+	     	 }
+	     }
+	     elsif($Line2[1] == 16 && $Line3[1] == 16 && $Line1[1] == 16){
+	     	if($gap2_r>=0 && $gap2_r<=20000 && $gap3_r>=0 && $gap3_r<=20000){
+	     		my $print = &CASE2( \@Line4, \@Line3, \@Line2, \@Line1, $gap1_r, $gap2_r, $gap3_r );
+		        print JOIN $print;
+	     	}
+	     }
+	}
+		 
+}
+my $t3 = time();
+$t = $t3 - $t2;
+print "time for calculate $t s\n";
+
+
+
+
+
+
+
+sub CASE1 {
+	my ( $L1_r, $L2_r, $L3_r, $L4_r, $gap1, $gap2, $gap3 ) = @_;
+	my @L1 = @$L1_r;
+	my @L2 = @$L2_r;
+	my @L3 = @$L3_r;
+	my @L4 = @$L4_r;
+	my $Cigar;
+	if ( $gap1 == 0 ) {
+		if ( $gap2 == 0 ) {
+			if ( $gap3 == 0 ) {
+				$Cigar = "100M";
+			}
+			else {
+				$Cigar = "75M" . $gap3 . "N25M";
+			}
+		}
+		else {
+			if ( $gap3 == 0 ) {
+				$Cigar = "50M" . $gap2 . "N50M";
+			}
+			else {
+				$Cigar = "50M" . $gap2 . "N25M" . $gap3 . "N25M";
+			}
+		}
+	}
+	else {
+		if ( $gap2 == 0 ) {
+			if ( $gap3 == 0 ) {
+				$Cigar = "25M" . $gap1 . "N75M";
+			}
+			else {
+				$Cigar = "25M" . $gap1 . "N50M" . $gap3 . "N25M";
+			}
+		}
+		else {
+			if ( $gap3 == 0 ) {
+				$Cigar = "25M" . $gap1 . "N25M" . $gap2 . "N50M";
+			}
+			else {
+				$Cigar =
+				  "25M" . $gap1 . "N25M" . $gap2 . "N25M" . $gap3 . "N25M";
+			}
+		}
+	}
+	my $Qname = substr( $L1[0], 0, -2 );
+	my $Mapq = 42;
+
+	my $Seq  = $L1[9] . $L2[9] . $L3[9] . $L4[9];
+	my $Qual = $L1[10] . $L2[10] . $L3[10] . $L4[10];
+	return "$Qname\t$L1[1]\t$L1[2]\t$L1[3]\t$Mapq\t$Cigar\t*\t0\t0\t$Seq\t$Qual\n";
+
+}
+
+sub CASE2() {
+	my ( $L1_r, $L2_r, $L3_r, $L4_r, $gap1, $gap2, $gap3 ) = @_;
+	my @L1 = @$L1_r;
+	my @L2 = @$L2_r;
+	my @L3 = @$L3_r;
+	my @L4 = @$L4_r;
+	my $Cigar;
+
+    my $chr = $L2[2];
+	my $ref = substr( $$chr, $L2[3] - 26, 25 );
+	my $add = 0;
+	for ( my $j = 24 ; $j >= 0 ; $j-- ) {
+	    my $a = substr( $L1[9], $j, 1 );
+		my $b = substr( $ref,   $j, 1 );
+		if ( $a ne $b && $b ne "N" ) {
+			last;
+		}
+		$add++;
+	}
+	if ( $add > 4 ) {
+		my $newPos = $L2[3] - $add;
+		if ( $gap2 == 0 ) {
+			if ( $gap3 == 0 ) {
+				$Cigar = ( 75 + $add ) . "M";
+			}
+			else {
+				$Cigar = ( 50 + $add ) . "M" . $gap3 . "N25M";
+			}
+		}
+		else {
+			if ( $gap3 == 0 ) {
+				$Cigar = ( 25 + $add ) . "M" . $gap2 . "N50M";
+			}
+			else {
+				$Cigar =( 25 + $add ) . "M" . $gap2 . "N25M" . $gap3 . "N25M";
+			}
+		}
+		my $Qname = substr( $L1[0], 0, -2 );
+		my $Mapq  = 42;
+		my $Seq   = substr( $L1[9], 25 - $add ) . $L2[9] . $L3[9] . $L4[9];
+		my $Qual = substr( $L1[10], 25 - $add ) . $L2[10] . $L3[10] . $L4[10];
+		return "$Qname\t$L2[1]\t$L2[2]\t$newPos\t$Mapq\t$Cigar\t*\t0\t0\t$Seq\t$Qual\n";
+		}
+}
+
+sub CASE3(){
+	my ( $L1_r, $L2_r, $L3_r, $L4_r, $gap1, $gap2, $gap3 ) = @_;
+	my @L1 = @$L1_r;
+	my @L2 = @$L2_r;
+	my @L3 = @$L3_r;
+	my @L4 = @$L4_r;
+	my $Cigar;
+
+    my $chr = $L2[2];
+	my $ref = substr( $$chr, $L3[3]+24, 25 );
+	my $add = 0;
+	for(my $j= 0;$j<25;$j++){
+		my $a = substr($L4[9],$j,1);
+		my $b = substr($ref,$j,1);
+		if($a ne $b && $b ne "N"){
+			last;
+		}
+		$add ++;
+	}
+    if($add>4){
+	    my $newPos = $L3[3] + $add;
+	    if($gap1 == 0){
+	        if($gap2 == 0){
+	             $Cigar = (75+$add)."M";
+	        }
+	        else{
+	        	$Cigar = "50M".$gap2."N".(25+$add)."M";
+	        }
+	    }
+	    else{
+	        if($gap2 == 0){
+	        	$Cigar = "25M".$gap1."N".(50+$add)."M";
+	        }
+	        else{
+	        	$Cigar = "25M".$gap1."N25M".$gap2."N".(25+$add)."M";
+	        }
+	    }
+		my $Qname = substr( $L1[0], 0, -2 );
+		my $Mapq  = 42;
+		my $Seq   = $L1[9].$L2[9].$L3[9].substr($L4[9],0,$add);
+		my $Qual =  $L1[10].$L2[10].$L3[10].substr($L4[10],0,$add);
+		return "$Qname\t$L2[1]\t$L2[2]\t$newPos\t$Mapq\t$Cigar\t*\t0\t0\t$Seq\t$Qual\n";
+		}
+}
+
+sub CASE4 {
+	my ( $L1_r, $L2_r, $L3_r, $L4_r, $gap3 ) = @_;
+	my @L1 = @$L1_r;
+	my @L2 = @$L2_r;
+	my @L3 = @$L3_r;
+	my @L4 = @$L4_r;
+	my $Cigar;
+	my $chr = $L1[2];
+	if($L3[3]-$L1[3]>50){
+		my $ref1 = substr($$chr, $L1[3]+24, 25);
+		my $ref2 = substr($$chr, $L3[3]-26, 25);
+		my $add1 = 0;
+		my $add2 = 0;
+		
+		for(my $j= 0;$j<25;$j++){
+			my $a = substr($L2[9],$j,1);
+			my $b = substr($ref1,$j,1);
+			if($a ne $b && $b ne "N"){
+				last;
+			}
+			$add1 ++;
+		}
+		
+		for(my $j= 24;$j>=0;$j--){
+			my $a = substr($L2[9],$j,1);
+			my $b = substr($ref2,$j,1);
+			if($a ne $b && $b ne "N"){
+				last;
+			}
+			$add2 ++;
+		}
+		my $total = $add1+$add2;
+		
+		if($total >25){
+			$add1 = $add1-$total+25;
+		}
+		elsif($total == 24){
+			$add1++;
+		}
+		
+		if($add1+$add2 == 25){
+			my $gap = $L3[3] - $L1[3] -50;
+			if($gap3==0){
+				$Cigar = (25+$add1)."M".$gap."N".(50+$add2)."M";
+			}
+			else{
+				$Cigar = (25+$add1)."M".$gap."N".(25+$add2)."M".$gap3."N25M";
+			}
+			my $Qname = substr( $L1[0], 0, -2 );
+		    my $Mapq = 42;
+		    my $Seq  = $L1[9] . $L2[9] . $L3[9] . $L4[9];
+		    my $Qual = $L1[10] . $L2[10] . $L3[10] . $L4[10];
+		    return "$Qname\t$L1[1]\t$L1[2]\t$L1[3]\t$Mapq\t$Cigar\t*\t0\t0\t$Seq\t$Qual\n";
+		}
+	
+	}
+}
+
+sub CASE5 {
+	my ( $L1_r, $L2_r, $L3_r, $L4_r, $gap1 ) = @_;
+	my @L1 = @$L1_r;
+	my @L2 = @$L2_r;
+	my @L3 = @$L3_r;
+	my @L4 = @$L4_r;
+	my $Cigar;
+	my $chr = $L1[2];
+	
+	if($L4[3]-$L2[3]> 50){
+		my $ref2 = substr($$chr, $L4[3]-26, 25);
+		my $ref1 = substr($$chr, $L2[3]+24, 25);
+		my $add1 = 0;
+		my $add2 = 0;
+		
+		for(my $j= 0;$j<25;$j++){
+			my $a = substr($L3[9],$j,1);
+			my $b = substr($ref1,$j,1);
+			if($a ne $b && $b ne "N"){
+				last;
+			}
+			$add1 ++;
+		}
+		
+		for(my $j= 24;$j>=0;$j--){
+			my $a = substr($L3[9],$j,1);
+			my $b = substr($ref2,$j,1);
+			if($a ne $b && $b ne "N"){
+				last;
+			}
+			$add2 ++;
+		}
+		my $total = $add1+$add2;
+		
+		if($total >25){
+			$add1 = $add1-$total+25;
+		}
+		elsif($total == 24){
+			$add1++;
+		}
+		
+		if($add1+$add2 == 25){
+			my $gap = $L4[3] - $L2[3] -50;
+			if($gap1==0){
+				$Cigar = (50+$add1)."M".$gap."N".(25+$add2)."M";
+			}
+			else{
+				$Cigar = "25M".$gap1."N".(25+$add1)."M".$gap."N".(25+$add2)."M";
+			}
+			my $Qname = substr( $L1[0], 0, -2 );
+			my $Mapq = 42;
+			my $Seq  = $L1[9] . $L2[9] . $L3[9] . $L4[9];
+			my $Qual = $L1[10] . $L2[10] . $L3[10] . $L4[10];
+			return "$Qname\t$L1[1]\t$L1[2]\t$L1[3]\t$Mapq\t$Cigar\t*\t0\t0\t$Seq\t$Qual\n";
+		}
+	}
+	
+}

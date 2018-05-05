@@ -1,0 +1,27 @@
+#!/home/lisun/prog/R/bin/Rscript
+library("pheatmap")
+
+args<-commandArgs(T)
+
+####Repeat Family
+#data = as.matrix(read.table("rn6_family.rmsk", header=TRUE, row.names=1 ))
+#pheatmap(data, cellwidth = 20, cellheight = 7, fontsize=6, fontsize_row=6,main="Rat Rep_Famlily",clustering_distance_rows="manhattan",clustering_distance_cols="manhattan",filename="rn6_enrich_family.pdf")
+
+
+#data = as.matrix(read.table("mm10_family.rmsk", header=TRUE, row.names=1 ))
+#pheatmap(data, cellwidth = 20, cellheight = 7, fontsize=6, fontsize_row=6,main="Mouse Rep_Famlily",clustering_distance_rows="manhattan",clustering_distance_cols="manhattan",filename="mm10_enrich_family.pdf")
+
+
+###Repeat Class
+data <-as.matrix(read.table(args[1],header=TRUE,row.names=1))
+pheatmap(data, cellwidth = 15, cellheight = 10, fontsize=6, fontsize_row=6,main=args[3],clustering_distance_rows="manhattan",clustering_distance_cols="manhattan",filename=args[2])
+
+
+###Repeat Family
+data <-as.matrix(read.table(args[4],header=TRUE,row.names=1))
+pheatmap(data, cellwidth = 15, cellheight = 10, fontsize=6, fontsize_row=6,main=args[6],clustering_distance_rows="manhattan",clustering_distance_cols="manhattan",filename=args[5])
+
+###Repeat Name
+data <-as.matrix(read.table(args[7],header=TRUE,row.names=1))
+pheatmap(data, cellwidth = 15, cellheight = 1, fontsize=6, fontsize_row=1,main=args[9],clustering_distance_rows="manhattan",clustering_distance_cols="manhattan",filename=args[8])
+dev.off();

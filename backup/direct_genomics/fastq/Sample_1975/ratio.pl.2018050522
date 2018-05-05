@@ -1,0 +1,12 @@
+#!/usr/bin/perl -w
+open FILE, 'Sample_1975.vcf';
+open TEM, '>tem';
+print TEM "\n";
+while(<FILE>){
+	if ($_ !~ /^\#/){
+		my ($tem1) = split /\%/;
+		my @tem2 = split /:/, $tem1;
+		print TEM $tem2[-1], "\%\n";
+
+	}
+}

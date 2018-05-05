@@ -1,0 +1,22 @@
+#!/bin/bash
+cat >assign.sh << EOF
+#!/bin/bash
+#PBS -q batch
+#PBS -N ASSIGN
+#PBS -l nodes=1:ppn=1
+#PBS -j oe 
+
+cd /data1/lyk/chenlab/
+perl assign.pl \$sample
+
+EOF
+
+for i in /data1/lisun/fusion_cell/STAR/mm10_RM-MEF-P13*L3/Log.final.out
+do
+	IFS='\/' read -r -a array <<< "$i"
+	sample="${array[5]}"
+	sample=${sample#*\_}
+	qsub -v sample=$sample assign.sh
+done
+
+

@@ -1,0 +1,43 @@
+#!/usr/bin/perl -w
+#
+open OUT, ">mapping_info.txt";
+print OUT "Sample\tUnique_A\tUnique_M\tUnique_X\tMulti_A\tMulti_M\tMulti_X\n";
+
+my @sample = qw /mm10_SRR2919536_ens mm10_SRR2919540_ens mm10_SRR2919542_ens mm10_SRR2919544_ens rn6_SRR2919538_ens rn6_SRR2919540_ens rn6_SRR2919542_ens rn6_SRR2919544_ens/;
+foreach my $sample (@sample){
+	my @info = &get_info($sample);
+	print OUT "$sample\t",join "\t",@info, "\n";
+}
+
+
+sub get_info{
+	open FILE, "samtools view -f 67 $_[0]/Aligned.sortedByCoord.out.bam | awk '{print \$3,\$5,\$13}' | ";
+	my ($ua,$um,$ux,$ma,$mm,$mx) = 0;
+	while(<FILE>){
+		chomp;
+		my ($chr,$mapq,$hi) = split;
+		if($mapq == 255){
+			if($chr =~ /chr[0-9]+/){
+				$ua++;
+			}
+			elsif($chr =~ /chrM/){
+				$um++;
+			}
+			elsif($chr =~ /chrX/){
+				$ux++;
+			}
+		}
+		elsif($hi eq "HI:i:0"){
+			if($chr =~ /chr[0-9]+/){
+				$ma++;
+			}
+			elsif($chr =~ /chrM/){
+				$mm++;
+			}
+			elsif($chr =~ /chrX/){
+				$mx++;
+			}
+		}
+	}
+	return ($ua,$um,$ux,$ma,$mm,$mx);
+}

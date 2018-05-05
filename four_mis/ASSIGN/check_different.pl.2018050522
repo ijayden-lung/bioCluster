@@ -1,0 +1,24 @@
+#!/usr/bin/perl -w
+open ST, "mm10_gene_count.csv";
+open FC, "table_mm10_featureCounts.tsv";
+
+<ST>;
+<FC>;
+my %hash;
+while(<ST>){
+	chomp;
+	my @data = split /,/;
+	$hash{$data[0]} = "$data[1]\t$data[4]\t$data[3]\t";
+}
+
+
+while(<FC>){
+	chomp;
+	my @data = split /\t/;
+	$hash{$data[0]} .= "$data[1]\t$data[2]\t$data[3]";
+}
+
+open FILE, ">Check.tsv";
+while(my ($key,$value) = each %hash){
+	print FILE "$key\t$value\n";
+}

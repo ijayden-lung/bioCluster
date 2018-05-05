@@ -1,0 +1,44 @@
+#!usr/bin/perl -w
+
+open HOTSPOT, "/1/longyk/direct_genomics/cosmic_hotspot_2751.txt";
+my %hash;
+while(<HOTSPOT>){
+	chomp;
+	my ($chr, $pos,$ref,$alt,$cos) = split /\t/,$_;
+	$hash{$cos} = "$ref\/$alt";
+
+}
+
+####If conains the same cosmic number, then it is hotspot
+open FILE, "sort.txt";
+open TEM1, ">tem1";
+open TEM2, ">tem2";
+while(<FILE>){
+	chomp;
+	@data  = split /\t/,$_;
+	if($data[9] =~ "COSM"){	
+		my ($cosmic,undef) = split /\;/,$data[9];
+		my $newCos = substr($cosmic,3);
+		my @cosNum = split /\,/,$newCos;
+		my $i = 0;
+		foreach my $cos (@cosNum){	
+			if(exists $hash{$cos}){
+				print TEM1 "$_\t",$cos,"\n";
+			}
+			else{
+				$i++;
+				next if $i>1;
+				print TEM2 "$_\n";
+			}
+		}
+	}
+
+	else{			
+		print TEM2 "$_,\n";
+	}
+}
+
+
+system("cat tem1 tem2 >HS_Merge.txt");
+system("rm tem1 tem2");
+

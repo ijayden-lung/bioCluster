@@ -1,0 +1,99 @@
+#!/usr/bin/perl -w
+#Categorize inheritance for each gene
+#Updated 2017/04/30
+use autodie;
+my ($input,$output,$type_info, $threshold) = @ARGV;
+open FPKM, $input; #"/home/lyk/Gra_Pro/lisun_script/table_QC_filter_dominant.tsv");
+open OUTPUT,'>',$output;
+open TYPE, '>>' ,$type_info;
+
+my $header = <FPKM>;
+chomp $header;
+print OUTPUT "gene_id\tgene_name\tRM_Mouse\tRM_Rat\tMR_Mouse\tMR_Rat\tMOCK_Mouse\tMOCK_Rat\tType_RM\tType_MR\tType_Mock\n";
+
+my @type_count;
+my @area_count;
+my @type = qw /Conversed Mouse_dominant Rat_dominant Overdominant Underdominant Additive/;
+my @area = qw /area1 area2 area3 area4 area5 area6/;
+my @sample = qw /RM MR MOCK/;
+while($line=<FPKM>){
+	chomp($line);
+	@data=split(/\t/,$line);
+	my $mouse = log($data[2])/log(2);
+	my $rat   = log($data[3])/log(2);
+	my $rm   =  log($data[7])/log(2);
+	my $mr   =  log($data[11])/log(2);
+	my $mo   =  log($data[15])/log(2);
+	print OUTPUT "$data[0]\t$data[1]\t$mouse\t$rat\t$rm\t$mr\t$mo";
+	for(my $i=7;$i<@data;$i+=4){
+		my $hyb = log($data[$i])/log(2);
+		my $x = $hyb-$mouse;
+		my $y = $hyb-$rat;
+		my $z = $mouse-$rat;
+		if(abs($x)<=$threshold && abs($y)<=$threshold){
+			print OUTPUT "\t$type[0]";
+			$type_count[($i-4)/4]->{$type[0]}++;
+		}
+		elsif(abs($x)<=$threshold && abs($y)>$threshold){
+			print OUTPUT "\t$type[1]";
+			$type_count[($i-4)/4]->{$type[1]}++;
+			if($y>$threshold){
+				$area_count[($i-4)/4]->{$area[0]}++;
+			}else{
+				$area_count[($i-4)/4]->{$area[1]}++;
+			}
+		}
+		elsif(abs($x)>$threshold && abs($y)<=$threshold){
+			print OUTPUT "\t$type[2]";
+			$type_count[($i-4)/4]->{$type[2]}++;
+			if($x<$threshold){
+				$area_count[($i-4)/4]->{$area[2]}++;
+			}else{
+				$area_count[($i-4)/4]->{$area[3]}++;
+			}
+		}
+		elsif($x>$threshold && $y>$threshold){
+			print OUTPUT "\t$type[3]";
+			$type_count[($i-4)/4]->{$type[3]}++;
+		}
+		elsif($x<-$threshold && $y<-$threshold){
+			print OUTPUT "\t$type[4]";
+			$type_count[($i-4)/4]->{$type[4]}++;
+		}
+		else{
+			print OUTPUT "\t$type[5]";
+			$type_count[($i-4)/4]->{$type[5]}++;
+			if($x<-$threshold && $y>$threshold){
+				$area_count[($i-4)/4]->{$area[4]}++;
+			}
+			else{
+				$area_count[($i-4)/4]->{$area[5]}++;
+			}
+		}
+	}
+	print OUTPUT "\n";
+
+}
+
+print TYPE "For threshold = $threshold\n";
+print TYPE "Type_info\t",join "\t",@type,"\n";
+#print TYPE "Type_info\tConversed\tMouse_dominant\tRat_dominant\tOverdominant\tUnderdominant\tAdditive\n";
+for(my$i=0;$i<@type_count;$i++){
+	print TYPE "$sample[$i]";
+	foreach my $type (@type){
+		print TYPE "\t$type_count[$i]->{$type}";
+	}
+	print TYPE "\n";
+}
+
+print TYPE "\nArea_info\t",join "\t" , @area,"\n";
+
+for(my$i=0;$i<@area_count;$i++){
+	print TYPE "$sample[$i]";
+	foreach my $area (@area){
+		print TYPE "\t$area_count[$i]->{$area}";
+	}
+	print TYPE "\n";
+}
+
+print TYPE "\n\n";

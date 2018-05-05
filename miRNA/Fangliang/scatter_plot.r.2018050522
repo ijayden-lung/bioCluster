@@ -1,0 +1,16 @@
+#!/home/lisun/prog/R/bin/Rscript
+library(ggplot2)
+
+
+args<-commandArgs(T)
+data <-read.table(args[1],sep="\t",header=T)
+data2 <- read.table(args[2],sep="\t",header=T)
+pdf(args[3])
+ggplot(data, aes(x = log2(SH1), y = log2(SH2)))+geom_point()+theme(axis.title = element_text(size=15,colour = "black"),axis.text = element_text(size=12))
+ggplot(data, aes(x = log2(SL1), y = log2(SL2)))+geom_point()+theme(axis.title = element_text(size=15,colour = "black"),axis.text = element_text(size=12))
+ggplot(data2, aes(x = log2(SH1), y = log2(SH2)))+geom_point()+theme(axis.title = element_text(size=15,colour = "black"),axis.text = element_text(size=12))
+ggplot(data2, aes(x = log2(SL1), y = log2(SL2)))+geom_point()+theme(axis.title = element_text(size=15,colour = "black"),axis.text = element_text(size=12))
+
+#reg<-lm(MOCK ~ Par,data=data)
+#summary(reg)
+

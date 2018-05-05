@@ -1,0 +1,58 @@
+#!/share/apps/R/bin/Rscript
+library(qvalue)
+
+table <- read.csv("./table_QC_filter_cis_trans_RM.tsv", sep="\t", header=T)
+qobj <- qvalue(p = table$Par_Bin_pvalues)
+plot(qobj)
+Par_Bin_qvalues <- qobj$qvalues
+table$Par_Bin_qvalues<-as.numeric(Par_Bin_qvalues)
+
+qobj <- qvalue(p = table$Hyb_Bin_pvalues)
+plot(qobj)
+Hyb_Bin_qvalues <- qobj$qvalues
+table$Hyb_Bin_qvalues<-as.numeric(Hyb_Bin_qvalues)
+
+qobj <- qvalue(p = table$FET_pvalues)
+plot(qobj)
+FET_qvalues <- qobj$qvalues
+table$FET_qvalues<-as.numeric(FET_qvalues)
+write.table(table,"table_qvalue_QC_filter_cis_trans_RM.tsv",quote = FALSE,row.names=FALSE,col.names=TRUE,sep="\t")
+dev.off()
+
+
+table <- read.csv("./table_QC_filter_cis_trans_MR.tsv", sep="\t", header=T)
+qobj <- qvalue(p = table$Par_Bin_pvalues)
+plot(qobj)
+Par_Bin_qvalues <- qobj$qvalues
+table$Par_Bin_qvalues<-as.numeric(Par_Bin_qvalues)
+
+qobj <- qvalue(p = table$Hyb_Bin_pvalues)
+plot(qobj)
+Hyb_Bin_qvalues <- qobj$qvalues
+table$Hyb_Bin_qvalues<-as.numeric(Hyb_Bin_qvalues)
+
+qobj <- qvalue(p = table$FET_pvalues)
+plot(qobj)
+FET_qvalues <- qobj$qvalues
+table$FET_qvalues<-as.numeric(FET_qvalues)
+write.table(table,"table_qvalue_QC_filter_cis_trans_MR.tsv",quote = FALSE,row.names=FALSE,col.names=TRUE,sep="\t")
+dev.off()
+
+
+table <- read.csv("./table_QC_filter_cis_trans_MOCK.tsv", sep="\t", header=T)
+qobj <- qvalue(p = table$Par_Bin_pvalues)
+plot(qobj)
+Par_Bin_qvalues <- qobj$qvalues
+table$Par_Bin_qvalues<-as.numeric(Par_Bin_qvalues)
+
+qobj <- qvalue(p = table$Hyb_Bin_pvalues)
+plot(qobj)
+Hyb_Bin_qvalues <- qobj$qvalues
+table$Hyb_Bin_qvalues<-as.numeric(Hyb_Bin_qvalues)
+
+qobj <- qvalue(p = table$FET_pvalues)
+plot(qobj)
+FET_qvalues <- qobj$qvalues
+table$FET_qvalues<-as.numeric(FET_qvalues)
+write.table(table,"table_qvalue_QC_filter_cis_trans_MOCK.tsv",quote = FALSE,row.names=FALSE,col.names=TRUE,sep="\t")
+dev.off()

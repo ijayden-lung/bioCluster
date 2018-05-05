@@ -1,0 +1,22 @@
+#!/usr/bin/perl
+
+open SAM, '/1/longyk/tophat/split7.sam';
+#open SAM, '/home/jayden/workspace/Bioinformatics/small.sam';
+
+open SORT, '>/1/longyk/tophat/order7.sam';
+#open SORT, '>/home/jayden/workspace/Bioinformatics/sortsmall.sam';
+
+for(my $i = 1; $i<28; $i++){
+	my $line = <SAM>;
+	print SORT $line;
+}
+
+my %hash;
+while (<SAM>){
+	my @Line = split /\t/;
+	$hash{$Line[0]} = $_;
+}
+
+foreach my $key (sort (keys %hash)){
+	print SORT $hash{$key};
+}

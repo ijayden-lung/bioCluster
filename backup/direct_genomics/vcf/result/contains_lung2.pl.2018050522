@@ -1,0 +1,57 @@
+#!/usr/bin/perl -w
+my ($dirname, $filename,%hash );
+$dirname = "/1/longyk/direct_genomics/vcf2/avinput/annovar_out";
+opendir (DIR, $dirname ) || die "Error in opening dir $dirname\n";
+
+while( ($filename = readdir(DIR))){               
+	if ($filename =~ 'multianno.txt'){
+		open FILE, "$dirname"."$filename";
+		my $i = 0; #this is to delete the first line;
+		while(<FILE>){
+			$i++;
+			next if $i==1;
+			chomp;
+			my @line = split /\t/;
+			my $location = "$line[0]\t$line[1]\t$line[2]\t$line[3]\t$line[4]\t$line[5]\t$line[6]\t$line[8]\t$line[10]";
+			if ($hash{$location}){
+				$hash{$location}=$hash{$location}."\t$filename"
+			}
+			else{
+				$hash{$location}="$filename";
+			}			
+
+		}
+	}		
+}
+
+open RESULT1, ">$dirname"."result1.txt";
+open RESULT2, ">$dirname"."result2.txt";
+open RESULT3, ">$dirname"."result3.txt";
+open RESULT4, ">$dirname"."result4.txt";
+while((my $key,my $value) = each %hash){
+	my $result = ($value =~ tr/\t/#/);
+	my @name = split /\#/, $value;
+	my @newname;
+	foreach my $ele (@name){
+		($new,undef) = split /\_/, $ele, 2;
+		push @newname, $new;  
+		
+	}
+
+	if($result==3){ 
+		print RESULT1 @newname, "\t$key\n";
+	
+	}
+	elsif($result==2){
+		 print RESULT2 @newname,"\t$key\n";
+	}
+	elsif($result==1){
+		 print RESULT3 @newname,"\t$key\n";
+	}
+	else{
+		 print RESULT4 @newname,"\t$key\n";
+	}
+
+}
+
+system "cat result1.txt result2.txt result3.txt result4.txt >result.txt"

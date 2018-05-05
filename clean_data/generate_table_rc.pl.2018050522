@@ -1,0 +1,77 @@
+#!/usr/bin/perl -w
+
+my %hash;
+#my @sample = ("high-1","high-2","low-1","low-2");
+my @sample = qw/SRR536342 SRR536344 SRR536346 SRR536348 SRR536350 SRR536352/;
+foreach my $sam (@sample){
+	#open FILE, "/home/lyk/data1/clean_data/STAR_TRIM/$sam/htseq.reverse.count";
+	open FILE, "/home/liulingjie/prost/deseq2_out/$sam\_htseq.txt";
+	while(<FILE>){
+		chomp;
+		my ($gene,$count) = split;
+		if($gene =~ /ENS/){
+			$hash{$gene} .= "\t$count";
+		}
+	}
+	close FILE;
+}
+
+open FILE2, ">table_prost_ReadCount.tsv";
+print FILE2 join "\t","Gene", @sample,"\n";
+#print FILE2 "Gene\thigh1\thigh2\tlow1\tlow2\n";
+while(my($key,$value) = each %hash){
+	print FILE2 "$key$value\n";
+}
+
+
+=pod
+my %hash;
+open FILE, "ctnnb1_high_1.tsv";
+while(<FILE>){
+	chomp;
+	my @data = split;
+	my $tran = $data[11];
+	my $tpm = $data[-1];
+	$tran =~ s/\"|\;//g;
+	$tpm  =~ s/\"|\;//g;
+	$hash{$tran} = $tpm;
+}
+open FILE, "ctnnb1_high_2.tsv";
+while(<FILE>){
+	chomp;
+	my @data = split;
+	my $tran = $data[11];
+	my $tpm = $data[-1];
+	$tran =~ s/\"|\;//g;
+	$tpm  =~ s/\"|\;//g;
+	$hash{$tran} .= "\t$tpm";
+}
+open FILE, "ctnnb1_low_1.tsv";
+while(<FILE>){
+	chomp;
+	my @data = split;
+	my $tran = $data[11];
+	my $tpm = $data[-1];
+	$tran =~ s/\"|\;//g;
+	$tpm  =~ s/\"|\;//g;
+	$hash{$tran} .= "\t$tpm";
+}
+open FILE, "ctnnb1_low_2.tsv";
+while(<FILE>){
+	chomp;
+	my @data = split;
+	my $tran = $data[11];
+	my $tpm = $data[-1];
+	$tran =~ s/\"|\;//g;
+	$tpm  =~ s/\"|\;//g;
+	$hash{$tran} .= "\t$tpm";
+}
+
+
+open FILE2, ">ctnnb1_combine.tsv";
+print FILE2 "Transcript ID\thigh-1\thigh-2\tlow-1\tlow-2\n";
+while(my($key,$value) = each %hash){
+	print FILE2 "$key\t$value\n";
+}
+
+=cut

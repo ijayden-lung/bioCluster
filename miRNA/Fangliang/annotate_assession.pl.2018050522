@@ -1,0 +1,36 @@
+#!/usr/bin/perl -w
+#
+open FILE,"hgTables";
+my %hash;
+while(<FILE>){
+	chomp;
+	my @data = split /\t/;
+	#my ($id) = split /\s+/;
+	#$id = substr($id,1);
+	#my $ind1 = index($_,'(');
+	#my $ind2 = index($_,')');
+	#my $symbol = substr($_,$ind1,$ind2-$ind1+1);
+	$hash{$data[1]} = $data[12];
+}
+
+open FILE,'Deseq2Results.tsv';
+<FILE>;
+open OUT,'>Deseq2Results.tsv2';
+while(<FILE>){
+	chomp;
+	my @data = split;
+	my $gene = shift @data;
+	foreach my $ele (split /,/,$gene){
+		if(exists $hash{$ele}){
+			print OUT "$hash{$ele},";
+		}
+		else{
+			print OUT "$ele,"
+		}
+	}
+	foreach my $ele (@data){
+		print OUT "\t$ele";
+	}
+	print OUT "\n";
+}
+

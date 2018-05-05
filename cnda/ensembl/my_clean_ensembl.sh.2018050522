@@ -1,0 +1,10 @@
+
+
+
+VERSION='90'
+
+sed 's/^/chr/g' Homo_sapiens.GRCh38.$VERSION.gtf  | sed 's/chrMT/chrM/g' | awk '/^chr[1-9XYM]/' | grep -E -v '3prime|IG_|miRNA|ribozyme|rRNA|sense_|sRNA|TEC|TR_|vaultRNA|snoRNA|snRNA|pseudogene|misc_RNA|_decay|scaRNA' >hg38.ensemblv$VERSION.nopsuedo.gtf
+ 
+#wc *.gtf
+
+

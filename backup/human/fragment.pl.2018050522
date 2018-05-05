@@ -1,0 +1,32 @@
+#!/usr/bin/perl                                                                                                                                                                                
+#!/usr/bin/perl
+open REF1, '/2_disk/longyk/human/chr21.fasta';##換行的。
+open REF2, '/2_disk/longyk/human/chr21.fasta';##換行的。
+
+$_ = <REF1>;
+chomp;
+$a = substr($_,1);
+open SIF, ">/2_disk/longyk/human/library/$a/splitInfo";
+$i = 0;
+while (<REF1>) {
+    $ref1 = $_;
+    chomp $ref1;
+    $ref2 = <REF2>;
+    chomp $ref2;
+    $length = length $ref1;
+    $location = $i*$length;
+    if($ref2 =~ /N/ || $ref2 =~ /[a-z]+/ ){
+if($ref1 !~ /N/ && $ref1 !~ /[a-z]+/){
+open SPL, ">/2_disk/longyk/human/library/$a/$location";
+print SPL "$ref1";
+print SIF "$location\n";
+}
+    }
+    if($ref2 !~ /N/ && $ref2 !~ /[a-z]+/ ){
+if($_ !~ /N/ && $_ !~ /[a-z]+/){
+print SPL "$ref1";
+}
+    }
+    $i++;
+}
+

@@ -1,0 +1,17 @@
+for i in *sam
+
+do
+date
+echo $i
+:<<BLOCK
+samtools view -bS $i >${i%.*}.bam
+
+samtools sort ${i%.*}.bam ${i%.*}.sorted
+
+samtools index ${i%.*}.sorted.bam
+
+samtools mpileup -f /home/jmzeng/ref-database/hg19.fa  ${i%.*}.sorted.bam  >${i%.*}.mpileup
+
+samtools mpileup -guSDf  /home/jmzeng/ref-database/hg19.fa  ${i%.*}.sorted.bam  | bcftools view -cvNg – > ${i%.*}.vcf
+BLOCK
+done

@@ -1,0 +1,11 @@
+#!/usr/bin/perl -w
+
+open COS, 'hg19_cosmic79.txt';
+open VCF, '>Cosmic79.vcf';
+print  VCF "\#CHROM\tPOS\tID\t REF\tALT\tQUAL\tFILTER\tINFO\n";
+while (<COS>){
+	chomp;
+
+
+:x
+

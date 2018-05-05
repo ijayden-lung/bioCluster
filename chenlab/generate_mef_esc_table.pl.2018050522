@@ -1,0 +1,64 @@
+#!/usr/bin/perl -w
+#
+#Author: lyk
+#Update: 2017/8/10
+#
+
+use List::Util qw(first max maxstr min minstr reduce shuffle sum);
+use Math::Round;
+
+
+
+open(ORT,"/home/lyk/data1/liftOver/sort/rVSm_121.ort");
+open(MM10,"/home/lisun/data1/fusion_cell/HTSeq/mm10_constit/norm_input_merged.tsv");
+open(RN6,"/home/lisun/data1/fusion_cell/HTSeq/rn6_constit/norm_input_merged.tsv");
+open OUT, ">table_norm_mefVSesc.rc";
+my $mou_head = <MM10>;
+my $rat_head = <RN6>;
+
+
+print OUT "gene_id\t",join "\t",(split /\t/,$mou_head)[1..7],(split /\t/,$rat_head)[1..7],"\n";
+my %ort;
+while(<ORT>){
+	chomp;
+	$_ =~ s/\;|\"//g;
+	my ($rat,$mou) = (split)[0,6];
+	$ort{$rat} = $mou;
+}
+
+my %hash;
+my @sum;
+while(<MM10>){
+	chomp;
+	my @data1 = split;
+	@{$hash{$data1[0]}}[0..6] = @data1[1..7];
+	my $line2 = <RN6>;
+	chomp $line2;
+	my @data2 = split /\t/,$line2;
+	@{$hash{$ort{$data2[0]}}}[7..13] = @data2[1..7];
+	for (my $i=1;$i<=7;$i++){
+		$sum[$i-1] += $data1[$i];
+	}
+	for (my $i=1;$i<=7;$i++){
+		$sum[$i+6] += $data2[$i];
+	}
+}
+
+
+my @size_factor;
+my $average = sum(@sum)/(@sum);
+for (my$i=0;$i<@sum;$i++){
+	$size_factor[$i] = $average/$sum[$i];
+}
+
+print "@size_factor\n";
+while(my ($key,$val) = each %hash){
+	print OUT "$key";
+	for(my $i=0;$i < @$val;$i++){
+		my $norm = $val->[$i]*$size_factor[$i];
+		$norm = round($norm);
+		print OUT "\t$norm";
+	}
+	print OUT "\n";
+	
+}

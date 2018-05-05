@@ -1,0 +1,38 @@
+#!/usr/bin/perl -w
+use 5.010;
+open FILE, "ortholog/rat2mouse_ensembl.ort";
+my %mouse;
+my $rat;
+
+open RAT, "rat_mt_gene.txt";
+while(<RAT>){
+	chomp;
+	$rat{$_} = "";
+}
+
+open MOU, "mouse_mt_gene.txt";
+while(<MOU>){
+	chomp;
+	$mouse{$_} = "";
+}
+
+
+
+open MT, ">ortholog/mt_related_r2m.ort";
+my $i = 0;
+my $j = 0;
+while(<FILE>){
+	chomp;
+	my ($rat,$mouse) =  split;
+	if(exists $rat{$rat} && exists $mouse{$mouse}){
+		print MT "$_\n";
+	}
+	elsif(exists $rat{$rat} && !exists $mouse{$mouse}){
+		$i++;
+	}
+	elsif(!exists $rat{$rat} && exists $mouse{$mouse}){
+		$j++;
+	}
+}
+
+print "$i\t$j\n";

@@ -1,0 +1,89 @@
+#!/bin/bash
+
+#PBS -q batch
+#PBS -N CHECK_SORT
+#PBS -l nodes=1:ppn=1
+#PBS -o Log.check.sort
+#PBS -j oe 
+#PBS -l walltime=07:30:00
+#PBS -l cput=24:00:00  
+#PBS -l mem=60gb
+#PBS -M longyk@mail.sustc.edu.cn
+#PBS -m e
+#PBS -l host=compute-0-5
+
+###############  Filter, Correct, Sort the Liftover and reference file ###############
+echo  "Filter, Correct, Sort the Liftover and reference file"
+cd /home/lyk/data1/liftOver/lisun/
+NEW="awk '(\$3 == \"exon\"){print}' back_mm10.gtf |"
+MOU="awk '(\$3 == \"exon\"){print}' mm10.gtf |"
+RAT="awk '(\$3 == \"exon\"){print}' rn6.gtf |"
+M2R="awk '(\$3 == \"exon\"){print}' mm102rn6.gtf |"
+ONE2ONE="/home/lyk/data1/cnda/ortholog/mouse2rat_ensembl.ort"
+FM2R=">mm102rn6.correct+filter.gtf"
+FMOU=">Fmm10.gtf"
+FRAT=">Frn6.gtf"
+SHIFT=10
+#perl /home/lyk/data1/liftOver/lisun/check_back.pl "$NEW" "$MOU" "$RAT" "$M2R" "$ONE2ONE" "$FM2R" "$FMOU" "$FRAT" "$SHIFT"
+#sort  -k 1,1 -k 4,4n -k 5,5nr Fmm10.gtf -o mm10_sorted.gtf
+#sort  -k 1,1 -k 4,4n -k 5,5nr Frn6.gtf -o rn6_sorted.gtf
+#sort  -k 1,1 -k 4,4n -k 5,5nr mm102rn6.correct+filter.gtf -o mm102rn6_sorted.gtf
+echo Done
+
+###############  Remove non-common chromosome ##################
+echo "Remove non-common chromosome"
+M2R="mm102rn6_sorted.gtf"
+RAT="rn6_sorted.gtf"
+#perl /home/lyk/Gra_Pro/liftOver/remove_chr.pl "$M2R" "$RAT"
+echo Done
+
+################  Projection   ###########
+echo "Projection"
+liftover="awk '(\$7 == \"+\"){print}' mm102rn6_sorted.gtf |"
+reference="awk '(\$7 == \"+\"){print}' rn6_sorted.gtf |"
+file=">rVSm.ort"
+
+echo +
+#perl /home/lyk/data1/liftOver/lisun/projection4.pl "$liftover" "$reference"  "$file"
+
+liftover="awk '(\$7 == \"-\"){print}' mm102rn6_sorted.gtf |"
+reference="awk '(\$7 == \"-\"){print}' rn6_sorted.gtf |"
+file=">>rVSm.ort"
+echo -
+#perl /home/lyk/data1/liftOver/lisun/projection4.pl "$liftover" "$reference"  "$file"
+echo Done
+
+################Filter one to more,more to one,and large shift exon;
+echo "Filter one to more,more to one,and large shift exon;"
+ort1="rVSm.ort"
+ort2="rVSm.ort"
+non=">non_one2one.txt"
+one=">rVSm_121.ort"
+echo check one2one relation
+perl /home/lyk/data1/liftOver/lisun/check_one2one.pl "$ONE2ONE" "$ort1" "$ort2" "$non" "$one"
+echo Done
+
+##############  Extract the common exon ##########
+
+echo Extract the common exon
+exon="mm10_sorted.gtf"
+list="rVSm_121.ort"
+out=">mm10_constit.gtf"
+perl /home/lyk/data1/liftOver/lisun/constit_transcr.pl "$exon" "$list" "$out" "mouse"
+exon="rn6_sorted.gtf"
+list="rVSm_121.ort"
+out=">rn6_constit.gtf"
+perl /home/lyk/data1/liftOver/lisun/constit_transcr.pl "$exon" "$list" "$out" "rat"
+echo Done
+
+
+##########COUNT GENE LENGTH
+gene=(mm10_constit rn6_constit mm10_sorted rn6_sorted)
+for i in ${gene[*]}
+do
+	echo count gene length for $i
+	inp="${i}.gtf"
+	out=">${i}_length.tsv"
+	perl /home/lyk/Gra_Pro/liftOver/count_gene_length.pl "$inp" "$out"
+done
+

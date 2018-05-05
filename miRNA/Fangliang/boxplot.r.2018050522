@@ -1,0 +1,11 @@
+#!/usr/bin/Rscript
+pdf("Boxplot_miRNA.pdf")
+data <- read.table("OnMiR.txt",header=TRUE,sep = "\t")
+#boxplot(abs(Par)~Category_RM,data=data,ylab="|Log2 PARENTAL M/R|") 
+
+
+
+#######Using ggplot with signicifant value;
+library(ggsignif)
+library(ggplot2)
+ggplot(data, aes(x=Category_RM, y=abs(Par)))+geom_boxplot()+geom_signif(comparisons = list(c("CIS", "TRANS")),map_signif_level=TRUE)+labs(y = "Log2 Parental M/R")

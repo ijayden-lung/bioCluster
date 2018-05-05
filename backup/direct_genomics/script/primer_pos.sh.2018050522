@@ -1,0 +1,3 @@
+#!/bin/sh
+
+nohup bowtie2 -x /1/public_resources/hg19/hg19 --no-hd -f -1 bowtie_in/tube2_1 -2 bowtie_in/tube2_2 -S tube2.sam >tube2.log&

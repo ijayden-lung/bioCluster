@@ -1,0 +1,60 @@
+#!/usr/bin/perl -w
+use Statistics::R;
+use List::Util qw(sum);
+#
+#
+#
+my $R = Statistics::R->new();
+
+my @lambda = (0.1,0.2,0.3,0.4,0.5,0.6);
+my @E      = (10,20,40,80,160);
+
+foreach my $lambda (@lambda){
+	foreach my $E (@E){
+		&Simulate($lambda,$E);
+	}
+}
+
+
+sub Simulate{
+##### Initial the pool
+	my $lambda = $_[0];
+	my $E = $_[1];
+	my @array;
+	for(my $i=0;$i<$E;$i++){
+		my $out = $R->run("p <- dpois($i,$lambda)");
+		$array[$i] = $R->get('p');
+	}
+
+	my @result;
+	my $sum;
+
+	for (my $time=0;$time<6;$time++){
+		($sum,@array) = &sum_Effect(@array);
+		$result[$time] = $sum;
+	}
+
+
+	open FILE, ">Simultion_$lambda\_$E";
+	print FILE "Pool\tSum_Effect\n";
+	foreach (my $i=0; $i<@result; $i++){
+		print FILE "$i\t$result[$i]\n";
+	}
+}
+
+
+
+
+
+sub sum_Effect{
+	my $sum = 0;
+	for (my $i=0;$i< @_;$i++){
+		$sum += ($i+1)*$_[$i];
+	}
+	for (my $i=0;$i< @_;$i++){
+		$_[$i] = ($i+1)*$_[$i]/$sum;
+	}
+	return ($sum,@_);
+}
+
+

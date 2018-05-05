@@ -1,0 +1,14 @@
+#!/usr/bin/perl -w
+
+open FILE, 'rn6.fa';
+while(<FILE>){
+	chomp;
+	if($_ =~ />/){
+		$chr = substr($_,1);
+		open FILE2, ">$chr.fa";
+		print FILE2 "$_\n";
+	}
+	else{
+		print FILE2 "$_\n";
+	}
+}

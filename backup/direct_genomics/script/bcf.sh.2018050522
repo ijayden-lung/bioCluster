@@ -1,0 +1,10 @@
+#!/bin/bash
+
+echo  "Programmer start now!"
+echo "hello, $USER"
+
+samtools mpileup -uDf /1/public_resources/hg19.fa O_S2_L001.sort >O_S2_L001.bcf
+samtools mpileup -uDf /1/public_resources/hg19.fa M_S1_L001.sort >M_S1_L001.bcf
+samtools mpileup -uDf /1/public_resources/hg19.fa 4_S3_L001.sort >4_S3_L001.bcf
+samtools mpileup -uDf /1/public_resources/hg19.fa H_S4_L001.sort >H_S3_L001.bcf
+

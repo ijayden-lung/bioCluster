@@ -1,0 +1,44 @@
+#!/bin/bash
+
+cat >star.sh << EOF
+#!/bin/bash
+#PBS -q batch
+#PBS -N BWA
+#PBS -l nodes=2:ppn=4
+#PBS -o \${log}
+#PBS -j oe 
+#PBS -l walltime=06:00:00
+
+
+#mkdir \$out
+cd \$out
+#STAR --twopassMode Basic --runThreadN 16 --outBAMsortingThreadN 16 --genomeDir /home/lyk/data1/cnda/STAR_INDEX/\$spe --readFilesIn \$fq1 \$fq2 --outFilterIntronMotifs RemoveNoncanonical --outSAMtype BAM SortedByCoordinate --outSAMattrIHstart 0  --outSAMstrandField intronMotif --outFilterMultimapScoreRange 0 --readFilesCommand zcat --clip3pNbases 40
+
+#cd ~/data1/PA_project/
+bwa mem -t 8 /home/lyk/data1/cnda/BWA_INDEX/\$spe \$fq1 \$fq2 >BWAGenomeAlign.sam
+#samtools sort ~/data1/PA_project/\$spe/\$sam/BWAAlign.sam -o ~/data1/PA_project/\$spe/\$sam/BWAAlign_sorted.bam
+#samtools index  BWAAlign_sorted.bam
+#samtools sort -@ 8 BWAGenomeAlign.sam -o BWAGenomeAlign_sorted.bam
+#samtools index  BWAGenomeAlign_sorted.bam
+EOF
+
+
+sample=(H3TW5DMXX_L1 H3TW5DMXX_L2 H7FJLDMXX_L1 H7FJLDMXX_L2) 
+#sample=(H7FJLDMXX_L1 H7FJLDMXX_L2) 
+#species=(C3H_HeJ CBA_J) 
+species=(BALB_cJ) 
+#species=(mm10)
+for sam in ${sample[*]}
+do
+	for spe in ${species[*]}
+	do
+		log="BWA_${spe}_${sam}.log"
+		dir="/home/lyk/data1/PA_project/${spe}"
+		out="/home/lyk/data1/PA_project/${spe}/$sam"
+		fq1=/home/wanghao/data1/PA_project/QC/S_1/S_1_TD171204830_$sam\_1.clean.fq.gz
+		fq2=/home/wanghao/data1/PA_project/QC/S_1/S_1_TD171204830_$sam\_2.clean.fq.gz
+		qsub -v out=$out,log=$log,spe=$spe,sam=$sam,dir=$dir,fq1=$fq1,fq2=$fq2 star.sh
+	done
+done
+
+

@@ -1,0 +1,11 @@
+#!/usr/bin/perl -w
+#
+open FILE, 'rVSm.ort';
+open FILTER,'>rVSm_filter_shift.ort';
+while(<FILE>){
+	chomp;
+	my ($left,$right) = (split)[3..4];
+	if(abs($left)<10 && abs($right)<10 && abs($left-$right)<10){
+		print FILTER "$_\n";
+	}
+}

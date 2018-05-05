@@ -1,0 +1,14 @@
+#!/bin/bash
+#PBS -q batch
+#PBS -N FASTQC
+#PBS -l nodes=2:ppn=4
+#PBS -j oe 
+#PBS -l walltime=08:00:00
+cd /home/sunw/data1/Fushion_cells/20170605_RM_MEF_ES_mRNA/clean_data/
+for i in *fq.gz
+do
+	fastqc -t 8 -o ~/data1/chenlab/FASTQC_OUT  $i
+done
+
+
+

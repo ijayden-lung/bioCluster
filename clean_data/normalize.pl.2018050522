@@ -1,0 +1,34 @@
+#!/usr/bin/perl -w
+#
+open FILE, "Splicing.tsv";
+<FILE>;
+my @sum;
+while(<FILE>){
+	chomp;
+	my @data = split;
+	for (my $i=0;$i<$#data;$i++){
+		$sum[$i] += $data[$i+1];
+	}
+}
+
+my @size_factor;
+my $average = ($sum[0]+$sum[1]+$sum[2]+$sum[3])/4;
+for (my$i=0;$i<@sum;$i++){
+	$size_factor[$i] = $average/$sum[$i];
+}
+
+
+open FILE, "Splicing.tsv";
+my $header = <FILE>;
+open FILE2, ">Splicing_norm.tsv";
+print FILE2 $header;
+while(<FILE>){
+	chomp;
+	my @data = split;
+	print FILE2 "$data[0]";
+	for (my $i=0;$i<$#data;$i++){
+		my $norm = $data[$i+1]*$size_factor[$i];
+		printf FILE2 ("\t%.0f",$norm);
+	}
+	print FILE2 "\n";
+}

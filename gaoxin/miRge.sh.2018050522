@@ -1,0 +1,11 @@
+#!/bin/bash
+
+#miRge2.0 annotate -s BurroughsAM.list  -lib /data1/lyk/cnda/miRNA -sp human -cpu 4 -pb /share/apps/genomics/approved/bowtie-1.2.2 -ad ATCTCGTATGCCGTCTTCTGCTTGAAAAAAAAAAAA,TCGTATGCCGTCTTCTGCTTGAAAAAAAAAAAAAAA,TCTCGTATGCCGTCTTCTGCTTGAAAAAAAAAAAAA,ATCTCGTATGCCGTCTTCTGCTTGAAAAAAAAAAAC,GTATGCCGTCTTCTGCTTGAAAAAAAAAAAAAAAAA
+
+
+#miRge2.0 annotate -s KanematsuS.list  -lib /data1/lyk/cnda/miRNA -sp human -cpu 4 -pb /share/apps/genomics/approved/bowtie-1.2.2 -ad ATCTCGTATGCCGTCTTCTGCTTGAAAAAAAAAAAA
+
+
+#miRge2.0 annotate -s LiN.list  -lib /data1/lyk/cnda/miRNA -sp mouse -cpu 4 -pb /share/apps/genomics/approved/bowtie-1.2.2 -ad TGAGGTAGTAGGTTGTATGGTTATCTCGTATGCCGTCTTCTGCTTGAAAAA,ACTGGACTTGGAGTCAGAAGGCATCTCGTATGCCGTCTTCTGCTTGAAAAA
+
+miRge2.0 annotate -s KrellJ.list -lib /data1/lyk/cnda/miRNA -sp human -cpu 4 -pb /share/apps/genomics/approved/bowtie-1.2.2 -ad illumina

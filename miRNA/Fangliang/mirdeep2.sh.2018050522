@@ -1,0 +1,12 @@
+#!/bin/bash
+#PBS -q batch
+#PBS -N miRDeep2
+#PBS -l nodes=1:ppn=1
+#PBS -j oe
+#PBS -V
+mkdir $path
+cd $path
+mapper.pl $fq -e -h -m -p /data1/lyk/cnda/bt1_index/hg38 -t reads_collapsed_vs_genome.arf -s reads_collapsed.fa -v -n -u
+quantifier.pl -p /data1/lyk/cnda/miRNA/hairpin.fa -m /data1/lyk/cnda/miRNA/mature.fa -r reads_collapsed.fa -t hsa
+miRDeep2.pl reads_collapsed.fa /share/apps/genomics/genome/hg38/hg38.fa reads_collapsed_vs_genome.arf /data1/lyk/cnda/miRNA/miRBase_hsa_v21.fa /data1/lyk/cnda/miRNA/miRBase_mmu_v21.fa /data1/lyk/cnda/miRNA/precursors_hsa_v21.fa -t Human -q expression_analyses/expression_analyses*/miRBase.mrd
+

@@ -1,0 +1,33 @@
+#!/usr/bin/perl -w
+
+my %data;
+my @row;
+my @sample;
+foreach my $file (glob '*/*/Log.final.out'){
+	open FILE,$file;
+	#next if ! defined $_;
+	my ($species,$rep) = split /\//,$file;
+	my $i = 0;
+	push @sample,"$species/$rep";
+	while(<FILE>){
+		chomp;
+		my ($rowName,$figure) = split /\|/;
+		$rowName =~ s/^\s+//;
+		$figue =~ s/^\s+//;
+		$data{$rowName}->{"$species/$rep"} = $figure;
+		$row[$i] = $rowName;
+		$i++;
+	}
+}
+
+open OUT,'>Log_STARMapping.txt';
+print OUT "\t",join "\t",@sample;
+print OUT "\n";
+foreach my $rowName (@row){
+	print OUT "$rowName";
+	my $val = $data{$rowName};
+	foreach my $key (@sample){
+		print OUT "\t$val->{$key}";
+	}
+	print OUT "\n";
+}

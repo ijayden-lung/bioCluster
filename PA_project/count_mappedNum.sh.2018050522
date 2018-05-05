@@ -1,0 +1,16 @@
+#!/bin/bash
+
+sample=(H3TW5DMXX_L1 H3TW5DMXX_L2 H7FJLDMXX_L1 H7FJLDMXX_L2) 
+species=(C3H_HeJ CBA_J mm10 BALB_cJ) 
+#species=(BALB_cJ)
+for sam in ${sample[*]}
+do
+	for spe in ${species[*]}
+	do
+		sample=$spe/$sam/BWAGenomeAlign.sam
+		echo $sample
+		samtools view -F 268 $sample | wc -l
+	done
+done
+
+

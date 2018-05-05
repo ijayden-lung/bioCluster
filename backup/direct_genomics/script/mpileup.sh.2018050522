@@ -1,0 +1,13 @@
+#!/bin/bash
+for i in /1/longyk/direct_genomics/sam/*.sort
+do
+	
+	j=${i%\/*}
+	k=${i%.*}
+	mpileup=${j%\/*}/mpileup/new/${k##*\/}.mpileup
+	vcf=${j%\/*}/vcf3/${k##*\/}.vcf
+	echo $mpileup
+	samtools mpileup -BQ 30 -d 500000 -f /1/public_resources/hg19.fa $i >$mpileup
+	echo $vcf
+	java -jar /1/longyk/VarScan.v2.3.9.jar mpileup2cns $mpileup  --min-coverage 100 --min-reads2 2 --min-var-freq 0.003   --p-value 0.01 --output-vcf 1 --variants >$vcf
+done

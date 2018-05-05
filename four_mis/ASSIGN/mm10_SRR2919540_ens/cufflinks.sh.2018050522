@@ -1,0 +1,28 @@
+#!/bin/bash
+#PBS -q batch
+#PBS -N StringTie
+#PBS -l nodes=2:ppn=4
+#PBS -o ${out}
+#PBS -j oe 
+
+#mkdir ${inp}
+cd $inp
+#samtools sort Aligned.sortedByCoord.out.sam -@ 32 -o Aligned.sortedByCoord.out.bam
+#cufflinks -o clout -p 8 -b /home/lyk/cnda/${spe}.fa -u -G /home/lyk/cnda/ensembl/${spe}.ensemblv86.nopsuedo.gtf  --library-type fr-unstranded Aligned.sortedByCoord.out.bam
+
+
+#STAR --twopassMode Basic --runThreadN 8 --outBAMsortingThreadN 8 --genomeDir /home/lyk/data1/cnda/STAR_INDEX/ensembl/$spe --scoreDelOpen -10000 --scoreInsOpen -10000  --readFilesIn /home/lyk/data1/fastq_trim/assign/comn/${sam}_1.fq /home/lyk/data1/fastq_trim/assign/comn/${sam}_2.fq --outFilterMismatchNmax 4 --outFilterIntronMotifs RemoveNoncanonical --outSAMtype BAM SortedByCoordinate --outSAMattrIHstart 0  --outSAMstrandField intronMotif  --quantMode GeneCounts --outFilterMultimapScoreRange 0
+
+mkdir constit_fpkm
+cd constit_fpkm
+stringtie ../Aligned.sortedByCoord.out.bam -o out.gtf -p 32 -e  -G /home/lyk/data1/liftOver/sort/${spe}_constit.gtf -A gene_abund.tab -C cov_refs.gtf -x chrY
+
+#STAR --runMode  inputAlignmentsFromBAM --runThreadN 32 --bamRemoveDuplicatesType UniqueIdentical --readFilesIn  Aligned.sortedByCoord.out.bam
+
+#samtools sort Aligned.sortedByCoord.out.sam -@ 32 -o Aligned.sortedByCoord.out.bam
+
+
+
+#samtools view -q 255 -h Aligned.sortedByCoord.out.bam | stringtie -  -o out_u.gtf -p 32 -e  -G /home/lyk/cnda/ensembl/${spe}.ensemblv86.nopsuedo.gtf -A gene_abund_u.tab -C cov_refs_u.gtf -x chrY
+#samtools view -f 67  /home/lyk/Gra_Pro/STAR/${mis}/${spe}_${sam}/Aligned.sortedByCoord.out.bam | awk 'BEGIN{a=0;m=0;x=0}; {if($5<255 &&  $13 == "HI:i:0"){if($3 ~ /chr[0-9]+/)a++; else if($3 == "chrM")m++; else if($3 == "chrX")x++} };END{print a,m,x}' 
+#samtools view -f 67  /home/lyk/Gra_Pro/STAR/${mis}/${spe}_${sam}/Aligned.sortedByCoord.out.bam | awk 'BEGIN{a=0;m=0;x=0}; {if($5==255 &&  $13 == "HI:i:0"){if($3 ~ /chr[0-9]+/)a++; else if($3 == "chrM")m++; else if($3 == "chrX")x++} };END{print a,m,x}'

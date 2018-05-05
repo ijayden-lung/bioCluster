@@ -1,0 +1,31 @@
+use Storable;
+use warnings;
+
+open (file,"../gene_exp.diff")||die "cannot open last_colume_file: $!";
+open (o_gene_list,">./3diff_sig_exp_genes_list.fa")||die "cannot open last_colume_file: $!";
+open (o_gene_table,">./3diff_sig_exp_genes_table.fa")||die "cannot open reads1.sam_file: $!";
+
+print o_gene_table "gene_id\tgene\tlocus\tstatus\tcase_value\tcontrol_value\tlog2(fold_change)\ttest_stat\tp_value\tq_value\n";
+$line = <file>;
+while ($line = <file>){
+	@table_line = ();
+	chomp $line;
+	@info = split(/\t/,$line);
+	$gene_id = $info[2];
+	$value1 = $info[7];
+	$value2 = $info[8];
+	$status = $info[6];
+	$log = $info[9];
+	@table_line = ($gene_id, $info[3], $value1, $value2, $info[9], $info[10], $info[11], $info[12]);
+    if($gene_id ne "-" && $status eq "OK" && $log ne "inf" && $log ne "-inf" && $log >= 1.5){
+		print o_gene_table "$table_line[0]\t$table_line[1]\t$info[6]\t$table_line[2]\t$table_line[3]\t$table_line[4]\t$table_line[5]\t$table_line[6]\t$table_line[7]\n";
+		print o_gene_list "$gene_id\n";
+	}elsif($gene_id ne "-" && $status eq "OK" && $log ne "inf" && $log ne "-inf" && $log <= -1.5){
+		print o_gene_table "$table_line[0]\t$table_line[1]\t$info[6]\t$table_line[2]\t$table_line[3]\t$table_line[4]\t$table_line[5]\t$table_line[6]\t$table_line[7]\n";
+		print o_gene_list "$gene_id\n";
+	}else{
+		next;
+	}
+}
+
+

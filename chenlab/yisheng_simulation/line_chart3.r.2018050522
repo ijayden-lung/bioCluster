@@ -1,0 +1,107 @@
+#!/usr/bin/Rscript
+
+pdf("Simulation.pdf")
+#layout(matrix(c(1,2),nrow=2,byrow=T))
+
+
+motif <- c("motif=10,max_eff=10","motif=8,max_eff=10","motif=6,max_eff=10","motif=6,max_eff=6","motif=6,max_eff=3")
+colors <- c("green","blue","red","yellow","cyan")
+
+read.table("/data1/lyk/chenlab/yisheng_simulation/Simulation_10_10_2",header=TRUE,sep="\t") -> data
+plot(data$Pool, data$Sum_Effect, main ="max2_eff=2", xlab = "Pools", ylab = "Sum Effects",col=colors[1])
+sp=spline(data$Pool,data$Sum_Effect,n=1000)
+lines(sp,col=colors[1],type="l")
+
+read.table("/data1/lyk/chenlab/yisheng_simulation/Simulation_8_10_2",header=TRUE,sep="\t") -> data
+lines(data$Pool, data$Sum_Effect, col=colors[2],type="p")
+sp=spline(data$Pool,data$Sum_Effect,n=1000)
+lines(sp,col=colors[2],type="l")
+
+read.table("/data1/lyk/chenlab/yisheng_simulation/Simulation_6_10_2",header=TRUE,sep="\t") -> data
+lines(data$Pool, data$Sum_Effect, col=colors[3],type="p")
+sp=spline(data$Pool,data$Sum_Effect,n=1000)
+lines(sp,col=colors[3],type="l")
+
+
+read.table("/data1/lyk/chenlab/yisheng_simulation/Simulation_6_6_2",header=TRUE,sep="\t") -> data
+lines(data$Pool, data$Sum_Effect, col=colors[4],type="p")
+sp=spline(data$Pool,data$Sum_Effect,n=1000)
+lines(sp,col=colors[4],type="l")
+
+read.table("/data1/lyk/chenlab/yisheng_simulation/Simulation_6_3_2",header=TRUE,sep="\t") -> data
+lines(data$Pool, data$Sum_Effect, col=colors[5],type="p")
+sp=spline(data$Pool,data$Sum_Effect,n=1000)
+lines(sp,col=colors[5],type="l")
+
+legend("bottomright", motif, cex=1, fill=colors)
+grid()
+
+
+read.table("/data1/lyk/chenlab/yisheng_simulation/Simulation_10_10_2",header=TRUE,sep="\t") -> data
+plot(data$Pool, data$Max_Eff, main ="max2_eff=2", xlab = "Pools", ylab = "Percentage of max_eff",col=colors[1])
+sp=spline(data$Pool,data$Max_Eff,n=1000)
+lines(sp,col=colors[1],type="l")
+
+read.table("/data1/lyk/chenlab/yisheng_simulation/Simulation_8_10_2",header=TRUE,sep="\t") -> data
+lines(data$Pool, data$Max_Eff, col=colors[2],type="p")
+sp=spline(data$Pool,data$Max_Eff,n=1000)
+lines(sp,col=colors[2],type="l")
+
+read.table("/data1/lyk/chenlab/yisheng_simulation/Simulation_6_10_2",header=TRUE,sep="\t") -> data
+lines(data$Pool, data$Max_Eff, col=colors[3],type="p")
+sp=spline(data$Pool,data$Max_Eff,n=1000)
+lines(sp,col=colors[3],type="l")
+
+
+read.table("/data1/lyk/chenlab/yisheng_simulation/Simulation_6_6_2",header=TRUE,sep="\t") -> data
+lines(data$Pool, data$Max_Eff, col=colors[4],type="p")
+sp=spline(data$Pool,data$Max_Eff,n=1000)
+lines(sp,col=colors[4],type="l")
+
+read.table("/data1/lyk/chenlab/yisheng_simulation/Simulation_6_3_2",header=TRUE,sep="\t") -> data
+lines(data$Pool, data$Max_Eff, col=colors[5],type="p")
+sp=spline(data$Pool,data$Max_Eff,n=1000)
+lines(sp,col=colors[5],type="l")
+
+legend("bottomright", motif, cex=1, fill=colors)
+grid()
+
+
+motif <- c("max2_eff=2","max2_eff=3","max2_eff=4")
+colors <- c("green","blue","red","yellow","cyan")
+read.table("/data1/lyk/chenlab/yisheng_simulation/Simulation_6_10_2",header=TRUE,sep="\t") -> data
+plot(data$Pool, data$Sum_Effect, main ="motif=6,max_eff=10", xlab = "Pools", ylab = "Sum Effects",col=colors[1])
+sp=spline(data$Pool,data$Sum_Effect,n=1000)
+lines(sp,col=colors[1],type="l")
+
+read.table("/data1/lyk/chenlab/yisheng_simulation/Simulation_6_10_3",header=TRUE,sep="\t") -> data
+lines(data$Pool, data$Sum_Effect, col=colors[2],type="p")
+sp=spline(data$Pool,data$Sum_Effect,n=1000)
+lines(sp,col=colors[2],type="l")
+
+read.table("/data1/lyk/chenlab/yisheng_simulation/Simulation_6_10_4",header=TRUE,sep="\t") -> data
+lines(data$Pool, data$Sum_Effect, col=colors[3],type="p")
+sp=spline(data$Pool,data$Sum_Effect,n=1000)
+lines(sp,col=colors[3],type="l")
+legend("bottomright", motif, cex=1, fill=colors)
+grid()
+
+motif <- c("max2_eff=2","max2_eff=3","max2_eff=4")
+colors <- c("green","blue","red","yellow","cyan")
+read.table("/data1/lyk/chenlab/yisheng_simulation/Simulation_6_10_2",header=TRUE,sep="\t") -> data
+plot(data$Pool, data$Max_Eff, main ="motif=6,max_eff=10", xlab = "Pools", ylab = "Percentage of max_eff",col=colors[1])
+sp=spline(data$Pool,data$Max_Eff,n=1000)
+lines(sp,col=colors[1],type="l")
+
+read.table("/data1/lyk/chenlab/yisheng_simulation/Simulation_6_10_3",header=TRUE,sep="\t") -> data
+lines(data$Pool, data$Max_Eff, col=colors[2],type="p")
+sp=spline(data$Pool,data$Max_Eff,n=1000)
+lines(sp,col=colors[2],type="l")
+
+read.table("/data1/lyk/chenlab/yisheng_simulation/Simulation_6_10_4",header=TRUE,sep="\t") -> data
+lines(data$Pool, data$Max_Eff, col=colors[3],type="p")
+sp=spline(data$Pool,data$Max_Eff,n=1000)
+lines(sp,col=colors[3],type="l")
+legend("bottomright", motif, cex=1, fill=colors)
+grid()
+

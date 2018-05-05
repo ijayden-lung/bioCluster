@@ -1,0 +1,29 @@
+#!/usr/bin/perl -w
+open FILE,'RM2_Unmap_NonMir.fa_1513650495.out.txt';
+<FILE>;
+<FILE>;
+<FILE>;
+my %hash;
+while(<FILE>){
+	chomp;
+	my @data = split;
+	my ($query,$repeat) = ($data[4],$data[9]);
+	$hash{$query} = $repeat;
+}
+
+open FILE,'Unmap_NonMir.txt';
+my $i = 0;
+my %hash2;
+while(<FILE>){
+	chomp;
+	$i++;
+	my ($seq) = split;
+	if(exists $hash{$i}){
+		$hash2{$seq} = $hash{$i};
+	}
+}
+
+open OUT, ">>BlastResult.tsv";
+while(my ($key,$val) = each %hash2){
+	print OUT "$key\t$val\n";
+}

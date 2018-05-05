@@ -1,0 +1,13 @@
+#!/usr/bin/perl -w
+
+
+open DIFF, '/2_disk/longyk/gene_exp.diff';
+open GENE, '>/2_disk/longyk/gene_list';
+<DIFF>;
+while(<DIFF>){
+	my @line = split /\t/;
+	if ((abs($line[9]))>=2 && ($line[8] >0.1 || $line[7] >0.1) ){
+		print GENE "$line[2]\n";
+	} 
+	
+}

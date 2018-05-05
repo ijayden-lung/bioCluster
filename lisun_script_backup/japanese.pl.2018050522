@@ -1,0 +1,13 @@
+#!/usr/bin/perl -w
+use strict;
+use warnings;
+use Statistics::R;
+
+my @input = ("table_QC_filter_compare_allele.tsv","scb.png");
+my $input = "table_filter_compare_allele.tsv";
+my $output = "test46.png";
+my $R = Statistics::R->new;
+$R->set('input',$input);
+$R->set('output',$output);
+my $out = $R->run_from_file("test.r");
+print "$out\n";

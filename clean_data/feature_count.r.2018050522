@@ -1,0 +1,17 @@
+#!/home/lisun/prog/R/bin/Rscript
+#PBS -q batch
+#PBS -N featureCounts
+#PBS -l nodes=4:ppn=2
+#PBS -o /data1/lyk/clean_data/log_featureCounts
+#PBS -j oe 
+
+library(Rsubread)
+files=c("/data1/lyk/clean_data/STAR_TRIM/high-1/Aligned.sortedByCoord.out.bam","/data1/lyk/clean_data/STAR_TRIM/high-2/Aligned.sortedByCoord.out.bam","/data1/lyk/clean_data/STAR_TRIM/low-1/Aligned.sortedByCoord.out.bam","/data1/lyk/clean_data/STAR_TRIM/low-2/Aligned.sortedByCoord.out.bam")
+
+#featureCounts(files,annot.ext="/data1/lyk/cnda/refSeq/mm10.repeatMasker.gtf",isGTFAnnotationFile=TRUE,GTF.featureType="exon",GTF.attrType="gene_id",useMetaFeatures=TRUE, countMultiMappingReads=TRUE, fraction=TRUE,isPairedEnd=TRUE,requireBothEndsMapped=TRUE,nthreads=8)
+
+
+fc_PE <- featureCounts(files,annot.ext="/data1/lyk/cnda/refSeq/hg38.repeatMasker.gtf",isGTFAnnotationFile=TRUE,GTF.featureType="exon",GTF.attrType="gene_id",useMetaFeatures=TRUE,isPairedEnd=TRUE, countMultiMappingReads=TRUE, fraction=TRUE,requireBothEndsMapped=TRUE,strandSpecific=2, nthreads=8)
+
+write.table(fc_PE$counts,"/data1/lyk/clean_data/table_fc.tsv",quote=FALSE,sep="\t")
+write.table(fc_PE$stat,"/data1/lyk/clean_data/fc_stat.txt",quote=FALSE,sep="\t")

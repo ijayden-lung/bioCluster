@@ -1,0 +1,36 @@
+#!/bin/bash
+
+cat >cufflinks.sh << EOF
+#!/bin/bash
+#PBS -q batch
+#PBS -N STAR
+#PBS -l nodes=4:ppn=8
+#PBS -o \${out}
+#PBS -j oe 
+
+mkdir \${inp}
+cd \$inp
+STAR --twopassMode Basic --runThreadN 32 --outBAMsortingThreadN 32 --genomeDir /home/lyk/data1/cnda/STAR_INDEX/\$spe --readFilesIn /home/wangwen/RMMEF/polysome_3mRNA/N05795_WW_80-133958309_libSEQ/PF_data/180206-X3A/3-mRNA-3ng-\$sam\_combined_R1.fastq.gz --outFilterIntronMotifs RemoveNoncanonical --outSAMtype BAM SortedByCoordinate --outSAMattrIHstart 0  --outSAMstrandField intronMotif --outFilterMultimapScoreRange 0 --readFilesCommand zcat
+
+####INDEX for sorted bam file
+#samtools index -@ 32 Aligned.sortedByCoord.out.bam
+
+EOF
+
+
+
+sample=(1) 
+species=(rn6) 
+for sam in ${sample[*]}
+do
+	for spe in ${species[*]}
+	do
+		sa=ul-${sam}
+		ou="STAR_${spe}_${sa}.log"
+		sp=${spe}
+		in="/home/lyk/data1/polysome/${spe}/$sa"
+		qsub -v inp=$in,out=$ou,spe=$sp,sam=$sa cufflinks.sh
+	done
+done
+
+

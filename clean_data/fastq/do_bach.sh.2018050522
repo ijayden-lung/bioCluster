@@ -1,0 +1,25 @@
+#!/bin/bash
+
+cat >star.sh << EOF
+#!/bin/bash
+#PBS -q batch
+#PBS -N FASTX_TRIM
+#PBS -l nodes=1:ppn=1
+#PBS -o Log.fatx_trim
+#PBS -j oe 
+#PBS -l host=compute-0-5
+
+cd /data1/sunw/Fushion_cells/20170605_RM_MEF_ES_mRNA/clean_data
+zcat \$fq | fastx_trimmer -f 7 -l 144 -i - -o /data1/chenlab/fastq/\$fq
+
+EOF
+
+
+
+cd /data1/sunw/Fushion_cells/20170605_RM_MEF_ES_mRNA/clean_data
+for i in *gz
+do
+	qsub -v fq=$i /data1/lyk/clean_data/star.sh
+done
+
+

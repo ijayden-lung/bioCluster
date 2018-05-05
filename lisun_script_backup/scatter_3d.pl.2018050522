@@ -1,0 +1,7 @@
+#!/share/apps/R/bin/Rscript
+
+library(rgl)
+attach(mtcars)
+
+data <-read.table("table_QC_filter_FPKM.tsv",sep="\t",header=T)
+plot3d(Par_Mouse_FPKM Par_Rat_FPKM MOCK_FPKM)

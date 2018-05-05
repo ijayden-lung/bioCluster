@@ -1,0 +1,15 @@
+#!/usr/bin/perl
+open SAM, '/2_disk/longyk/RNAseq/sortsmall.sam';
+open TOP, '>/2_disk/longyk/RNAseq/info';
+for ( my $i = 1 ; $i < 28 ; $i++ ) {
+	my $line = <SAM>;
+}
+my %hash;
+while(<SAM>){
+	my @line = split /\t/;
+	$hash{$line[0]}++;
+}
+
+foreach my $key (sort (keys %hash)){
+	print TOP "$hash{$key}\n";
+}

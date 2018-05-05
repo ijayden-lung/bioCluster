@@ -1,0 +1,40 @@
+#!/usr/bin/perl -w
+open FILE, 'mature.fa';
+open HSA,'>miRBase_hsa_v21.fa ';
+open MMU,'>miRBase_mmu_v21.fa ';
+open RNO,'>miRBase_rno_v21.fa ';
+while(<FILE>){
+	chomp;
+	my @data = split /\s+/;
+	my $read = <FILE>;
+	if($_ =~ /Homo/){
+		print HSA "$data[0]\n$read";
+	}
+	elsif($_ =~ /Mus/){
+		print MMU "$data[0]\n$read";
+	}
+	
+	elsif($_ =~ /Rat/){
+		print RNO "$data[0]\n$read";
+	}
+}
+
+open FILE, 'hairpin.fa';
+open HSA,'>precursors_hsa_v21.fa ';
+open MMU,'>precursors_mmu_v21.fa ';
+open RNO,'>precursors_rno_v21.fa ';
+while(<FILE>){
+	chomp;
+	my @data = split /\s+/;
+	my $read = <FILE>;
+	if($_ =~ /Homo/){
+		print HSA "$data[0]\n$read";
+	}
+	elsif($_ =~ /Mus/){
+		print MMU "$data[0]\n$read";
+	}
+	
+	elsif($_ =~ /Rat/){
+		print RNO "$data[0]\n$read";
+	}
+}

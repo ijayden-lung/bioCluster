@@ -1,0 +1,52 @@
+#!/user/bin/perl
+open FILE, '/2_disk/longyk/human/pileup/chr21.mpileup';
+open VCF,  '>/2_disk/longyk/human/pileup/chr21.vcf';
+
+print VCF "Chrom\tPosition\tRef\tVar\tQual\tCons:Cov:Reads1:Reads2:Freq:P-value\tStrandFilter:R1+:R1-:R2+:R2-:pval\tHet\tHom\n";
+@base1 = qw/A T C G/;
+@base2 = qw/a t c g/;
+while (<FILE>) {
+    chomp $_;
+    ($Chrom, $Position, $Ref, $Cov, $Seq, $Qual) = split /\t/;
+    if ( $Seq =~ /[ATCGatcg]/ ) {
+	for ( $i = 0 ; $i < 4 ; $i++ ) {
+	    $B = $base1[$i];
+	    $b = $base2[$i];
+	    $LengthVarNegative = ( $Seq =~ s/\Q$b\E/\Q$B\E/g);
+	    $LengthVar         = ( $Seq =~ s/\Q$B\E/\Q$b\E/g);
+	    $LengthVarPositive = $Cov - $LengthVarNegative;
+	    $Freq              = $LengthVar / $Cov;
+	    if ($Cov>5 ) {
+		if($Freq >= 0.8){
+		    $Cons = $B;
+		    $Freq = sprintf "%.2f%", 100 * $Freq; #sprintf("%.4f", $number);
+		    @Q = split //, $Qual;
+                    $qual = &average(@Q);
+                    $qual = sprintf "%.0f", $qual-33;
+                    print VCF "$Chrom\t$Position\t$Ref\t$Cons\t$qual\t$Cons:$Cov:$LengthVar:0:$Freq:0\tPass:$LengthVarPositive:$LengthVarNegative:0:0:0\t0\t1\n";
+		}
+		elsif($Freq >= 0.2){
+		    $Cons = $B;
+		    $Freq = sprintf "%.2f%", 100 * $Freq; #sprintf("%.4f", $number);
+		    @Q = split //, $Qual;
+                    $qual = &average(@Q);
+                    $qual = sprintf "%.0f", $qual-33;
+                    print VCF "$Chrom\t$Position\t$Ref\t$Cons\t$qual\t$Cons:$Cov:$LengthVar:0:$Freq:0\tPass:$LengthVarPositive:$LengthVarNegative:0:0:0\t1\t0\n";
+		}
+		
+		
+	    }
+	}
+    }
+}
+
+
+sub average {
+    my $total = 0;
+    my $num = scalar (@_);
+    foreach my $item (@_) {
+	$item = ord($item);
+	$total = $item + $total;
+    }
+    return $total/$num;
+}

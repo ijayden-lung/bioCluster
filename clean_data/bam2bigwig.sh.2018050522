@@ -1,0 +1,13 @@
+#!/bin/bash
+#PBS -q batch
+#PBS -N BAM2BIGWIG
+#PBS -l nodes=1:ppn=1
+#PBS -j oe 
+
+
+cd ~/data1/clean_data/
+sizes='hg38.chrom.sizes'
+sample='high-1';
+
+bedtools  genomecov -split -bg -ibam STAR_TRIM/$sample/Aligned.sortedByCoord.out.bam -g $sizes >BIGWIG/$sample\.bg
+bedGraphToBigWig BIGWIG/$sample\.bg $sizes BIGWIG/$sample\.bigwig

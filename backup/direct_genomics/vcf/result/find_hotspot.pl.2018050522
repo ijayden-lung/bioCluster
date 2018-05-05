@@ -1,0 +1,36 @@
+#!usr/bin/perl -w
+
+open HOTSPOT, "/1/longyk/direct_genomics/cosmic_hotspot_2751.txt";
+my %hash;
+while(<HOTSPOT>){
+	chomp;
+	my ($chr, $pos,$ref,$alt,$cos) = split /\t/,$_;
+	if( exists $hash{"$pos$chr"}){
+		$hash{"$pos$chr"} .= ";$ref\/$alt\/$cos"; 
+	}
+	else{
+		$hash{"$pos$chr"} = "$ref\/$alt\/$cos";
+	}
+}
+
+
+open FILE, "final.csv";
+open TEM1, ">tem1";
+open TEM2, ">tem2";
+while(<FILE>){
+	chomp;
+	my (undef,$chr,$pos1,$pos2,undef) = split /\,/,$_,5;
+	my @pos = $pos1..$pos2;
+	foreach my $ele (@pos){
+		if(exists $hash{"$ele$chr"}){
+			print TEM1 "$_,",$hash{"$ele$chr"},"\n";
+		}
+		else{
+			print TEM2 "$_,\n";
+		}
+	}
+}
+
+
+system("cat tem1 tem2 >fin_hotspot.csv");
+system("rm tem1 tem2")

@@ -1,0 +1,79 @@
+#!/usr/bin/perl -w
+
+open HOTSPOT, "/1/longyk/direct_genomics/cosmic_hotspot_2751.txt";
+my %hash;
+while(<HOTSPOT>){
+	chomp;
+	my ($chr, $pos,$ref,$alt,$cos) = split /\t/,$_;
+	$hash{$cos} = "$ref\/$alt";
+}
+
+
+foreach my $file (glob "/1/longyk/direct_genomics/fastq/*txt"){
+	my $pos1 = rindex($file,"/");
+	my $pos2 = index($file,".");
+	my $new = substr($file,0,$pos1+1)."final_result".substr($file,$pos1,$pos2-$pos1)."_cosmic.txt";
+	my $new2 = substr($file,0,$pos1+1)."final_result".substr($file,$pos1,$pos2-$pos1)."_undef.txt";
+	&func($file,$new,$new2,substr($file,$pos1+1,$pos2-$pos1-1));
+}
+
+
+sub func{
+
+	my ($total, $cosnum,$htnum, $lungnum) = 0;
+	open FILE, $_[0];
+	open NEW, '>'.$_[1];
+	open NEW2, '>'.$_[2];
+	<FILE>;
+	print NEW  "Gene Name\tPosition\tFunction\tGenome Mutation\tAA Change\tZygosity\tCosmic ID\tHotspot\n";
+	print NEW2 "Gene Name\tPosition\tFunction\tGenome Mutation\tAA Change\tZygosity\n";
+
+	while(<FILE>){
+
+		chomp;
+		my ($chr,$start,undef,$ref,$alt,$func,$name,$detail,$exonfun,$aachange,$cosmic79,$alle,undef,$coverage) = split /\t/;
+		my $pos = "$chr\:$start";
+		my $bchange = "$ref->$alt";
+		my $aa;
+		if ($aachange ne "\."){
+			(undef,$aa) = split /p.|,/,$aachange;
+		}
+		else{
+			$aa = ".";
+		}
+
+
+		if($cosmic79 ne "\."){
+			my (undef,$cos) = split /[=;]/, $cosmic79;
+			my @cosNum = split /,/, $cos;
+			my $hotspot;
+			foreach my $ele (@cosNum){
+				if(exists $hash{$ele}){
+					$hotspot = "yes";
+					$htnum++;
+					last;
+				}
+				else{
+					$hotspot = "no";
+				}
+			}
+
+			if($cosmic79 =~ /lung/){
+				$cos =  "* ".$cos;
+				$lungnum++;
+			}
+			print NEW "$name\t$pos\t$func\t$bchange\t$aa\t$alle\t$cos\t$hotspot\n";
+			$cosnum++;
+		}
+		else{
+			print NEW2 "$name\t$pos\t$func\t$bchange\t$aa\t$alle\n";
+			
+		}
+		$total++;
+	}
+	printf "%-15s%-6d%-6d%-6d%-6d\n",$_[3],$total,$cosnum,$lungnum,$htnum;
+	close FILE;
+	close NEW;
+	close NEW2;
+
+}

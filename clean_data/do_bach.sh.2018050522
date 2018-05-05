@@ -1,0 +1,64 @@
+#!/bin/bash
+
+cat >star.sh << EOF
+#!/bin/bash
+#PBS -q batch
+#PBS -N HTSeq
+#PBS -l nodes=1:ppn=1
+#PBS -o \${out}
+#PBS -j oe 
+
+
+#mkdir \${inp}
+cd \$inp
+#cd /data1/lyk/clean_data/
+
+#STAR --twopassMode Basic --runThreadN 32 --outBAMsortingThreadN 32 --genomeDir /home/lyk/data1/cnda/STAR_INDEX/ensembl/hg38  --readFilesIn \$fq1 \$fq2 --outSAMtype BAM SortedByCoordinate --outSAMattrIHstart 0  --outFilterMultimapScoreRange 0  --alignEndsType EndToEnd
+
+####INDEX for sorted bam file
+#samtools index -@ 32 Aligned.sortedByCoord.out.bam
+
+######Gene Abundance
+
+python -m HTSeq.scripts.count --mode=union -s reverse -r pos  -f bam  Aligned.sortedByCoord.out.bam /home/lyk/data1/cnda/ensembl/hg38.ensemblv88.nopsuedo.gtf  >htseq.reverse.count
+
+
+##Step 1 Get Isoform
+#samtools view -q 255 -h Aligned.sortedByCoord.out.bam | stringtie - -o out.gtf -p 32 -G /home/lyk/data1/cnda/ensembl/hg38.ensemblv88.nopsuedo.gtf --rf -f 0.05 -A gene_abund.tab -C cov_refs.gtf
+
+##Merge Isofrom
+#stringtie \$list --merge -G /home/lyk/data1/cnda/ensembl/hg38.ensemblv88.nopsuedo.gtf -o \$inp 
+
+##Get Abundance
+#samtools view -q 255 -h Aligned.sortedByCoord.out.bam | stringtie - -e -o merge_out.gtf -p 32 -G /data1/lyk/clean_data/STRINGTIE/\$typ\_merge.gtf --rf -f 0.05 -A merge_gene_abund.tab -C merge_cov_refs.gtf
+
+
+#perl get_genelist_bam.pl \$sam
+#python bam2wig.py -i /data1/lyk/clean_data/WIG/\$sam\_cd44.sorted.bam -s /data1/lyk/clean_data/hg38.chrom.sizes -o /data1/lyk/clean_data/WIG/\$sam\_cd44 --strand='1+-,1-+,2++,2--'
+
+EOF
+
+
+sample=("high-1" "high-2" "low-1" "low-2")
+for sam in ${sample[*]}
+do
+	inp=/home/lyk/data1/clean_data/STAR_TRIM/$sam
+	out=log_$sam
+	fq1=/home/lyk/data1/clean_data/fastq/trim/${sam}_1.fq
+	fq2=/home/lyk/data1/clean_data/fastq/trim/${sam}_2.fq
+	typ=${sam%-*}
+	qsub -v inp=$inp,out=$out,fq1=$fq1,fq2=$fq2,sam=$sam,typ=$typ star.sh
+done
+
+
+:<<BL
+type=("high" "low")
+for sam in ${type[*]}
+do
+	inp=/data1/lyk/clean_data/STRINGTIE/$sam\_merge.gtf
+	list=/data1/lyk/clean_data/$sam\_list
+	out=log_$sam
+	qsub -v inp=$inp,list=$list,out=$out star.sh
+
+done
+BL

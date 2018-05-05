@@ -1,0 +1,49 @@
+#!/bin/bash
+
+for i in  *mpileup
+do
+:<<BL
+	date
+	
+	basename=$(echo $i | awk -F '_' '{print $1"_"$2}')
+	b=${i%1.fastq*}2.fastq
+	
+	#echo bowtie2 working ..........
+	#echo
+	
+	#bowtie2 -x /1/public_resources/hg19/hg19 -p 16 -1 $i -2 $b  -S ${basename}.sam
+	echo
+	echo bwa working ............
+	echo
+
+	bwa mem -t 16 -M  /1/public_resources/hg19.fa  $i $b  >${basename}.sam
+
+	echo 
+	echo samtools working ..........
+	echo 
+
+	samtools view -bS ${basename}.sam >${basename}.bam
+	samtools sort ${basename}.bam -o ${basename}.sort
+	samtools index ${basename}.sort
+
+	
+	#use linux pipe command
+	
+
+	echo 
+	echo Varscan working .........
+	echo 
+	samtools mpileup -BQ 30 -d 500000 -f /1/public_resources/hg19.fa ${basename}.sort | java -jar /1/longyk/VarScan.v2.3.9.jar mpileup2cns -min-coverage 999 --min-reads2 3 --min-var-freq 0.003   --p-value 0.01 --output-vcf 1 --variants >${basename}.vcf
+BL
+	
+	basename=${i%.*}
+	#java -jar /1/longyk/VarScan.v2.3.9.jar mpileup2cns $i -min-coverage 999 --min-reads2 3 --min-var-freq 0.003   --p-value 0.01 --output-vcf 1 --variants >${basename}.vcf
+	echo 
+	echo annovar working .........
+	echo 
+	#convert2annovar.pl --format vcf4 ${basename}.vcf -outfile  ${basename}.avinput
+
+	table_annovar.pl ${basename}.avinput /1/longyk/annovar/humandb/ -buildver hg19 -out $basename -remove -otherinfo -protocol refGene,cosmic79,1000g2015aug_all,1000g2015aug_eas,snp138 -operation g,f,f,f,f -nastring .
+
+done
+

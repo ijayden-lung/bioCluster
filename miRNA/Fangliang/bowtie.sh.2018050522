@@ -1,0 +1,17 @@
+#!/bin/bash
+#PBS -q batch
+#PBS -N bowtie
+#PBS -l nodes=1:ppn=4
+#PBS -j oe
+#PBS -V
+
+sizes='hg38.chrom.sizes'
+sample='SL1'
+cd /data1/lyk/miRNA/Fangliang/
+
+#bowtie -p 4 -f -n 0 -e 80 -l 18 -a -m 5 --best --strata /data1/lyk/cnda/bt1_index/hg38 $sample/$sample.fa -S bowtie_out/$sample.sam
+samtools sort -o bowtie_out/$sample.sorted.bam -@ 4 bowtie_out/$sample.sam
+samtools index -@ 4 bowtie_out/$sample.sorted.bam
+rm bowtie_out/$sample.sam
+bedtools  genomecov -split -bg -ibam bowtie_out/$sample\.sorted.bam -g $sizes >bowtie_out/$sample\.bg
+bedGraphToBigWig bowtie_out/$sample\.bg $sizes bowtie_out/$sample\.bigwig

@@ -1,0 +1,11 @@
+SPECIES=Mus_musculus.GRCm38
+NUM=mm10
+VERSION=90
+
+
+# Chnged for v86.
+#sed 's/^/chr/g' Rattus_norvegicus.Rnor_6.0.$VERSION.gtf | sed 's/chrMT/chrM/g' | awk '/^chr[1-9XaXYM]/' | grep 'exon' | grep -E -v 'snoRNA|snRNA|miRNA|rRNA|pseudogene|misc_RNA|_decay|-ps[1-9]|"Rpl[1-9]|"Rps[1-9]' >rn6.ensemblv$VERSION.nopsuedo.gtf
+sed 's/^/chr/g' $SPECIES.$VERSION.gtf | sed 's/chrMT/chrM/g' | awk '/^chr[1-9XaXYM]/' | grep -E -v 'snoRNA|snRNA|miRNA|rRNA|pseudogene|misc_RNA|_decay|-ps[1-9]|"Rpl[1-9]|"Rps[1-9]' >$NUM.ensemblv$VERSION.nopsuedo.gtf
+
+wc -l $SPECIES.$VERSION.gtf
+wc -l $NUM.ensemblv$VERSION.nopsuedo.gtf

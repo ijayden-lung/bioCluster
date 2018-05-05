@@ -1,0 +1,5 @@
+#!/usr/bin/perl -w
+
+my $a  = "WRAP53:NM_018081:exon1:c.T30C:p.A10A,WRAP53:NM_001143990:exon2:c.T30C:p.A10A,WRAP53:NM_001143991:exon2:";
+my ($c,$cos) = split /p.|[,]/, $a;
+print "$c\t$cos\n";

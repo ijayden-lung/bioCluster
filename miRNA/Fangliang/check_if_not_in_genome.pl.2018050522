@@ -1,0 +1,115 @@
+#!/usr/bin/perl -w
+#
+
+sub median {
+	my @sorted = sort { $a <=> $b } @_;
+	($sorted[$#sorted/2 + 0.1] + $sorted[$#sorted/2 + 0.6])/2;
+}
+
+
+my %on;
+my %on_sum;
+my %off;
+my %off_sum;
+my @sample;
+print "Sample\tMapTargetCount\tMapMaxReadCount\tMapAveReadCout\tUnMapTargetCount\tUnMapMaxReadCount\tUnMapAveReadCout\n";
+foreach my $dir (glob "OUT/*"){
+	my (undef,$sample) = split /\//,$dir;
+	push @sample,$sample;
+	open FILE,"$dir/reads_collapsed.fa";
+	my %hash;
+	my $mirbase_readNum = 0;
+	my $genome_readNum = 0;
+	while(<FILE>){
+		chomp;
+		my $name = substr($_,1);
+		my $readNum = (split /x/,$name)[-1];
+		$mirbase_readNum += $readNum;
+		my $seq  = <FILE>;
+		chomp $seq;
+		$hash{$name} = $seq;
+	}
+
+	open FILE,"$dir/reads_collapsed_vs_genome.arf";
+	my %genome;
+	while(<FILE>){
+		chomp;
+		my ($name) = split;
+		my $readNum = (split /x/,$name)[-1];
+		$genome_readNum += $readNum;
+		$genome{$name} = $_;
+	}
+	print "$dir\t$mirbase_readNum/$genome_readNum\n";
+
+	my @stat = (0,0,0,0,0,0,0,0);
+	my $mapCount = 0;
+	my $unmap = 0;
+	my $max = 0;
+	my $sum = 0;
+	my @mapMedian;
+	my @unMapMedian;
+	foreach my $name (keys %hash){
+		my (undef,$count) = split /x/,$name;
+		if(exists $genome{$name}){
+			$stat[0]++;
+			$stat[1] += $count;
+			if($stat[2] < $count){
+				$stat[2] = $count;
+			}
+			$on{$hash{$name}}->{$sample} = $count;
+			$on_sum{$hash{$name}} +=  $count;
+			push @mapMedian,$count;
+		}
+		else{
+			$stat[4]++;
+			$stat[5] += $count;
+			if($stat[6] < $count){
+				$stat[6] = $count;
+			}
+			$off{$hash{$name}}->{$sample} = $count;
+			$off_sum{$hash{$name}} +=  $count;
+			push @unMapMedian,$count;
+		}
+	}
+	($stat[3]) = &median(@mapMedian);
+	($stat[7]) = &median(@unMapMedian);
+	$stat[1] = $stat[1]/$stat[0];
+	$stat[4] = $stat[4]/$stat[3];
+	print join "\t",$sample,@stat,"\n";
+}
+
+open FILE,'>OnMiR.txt';
+print FILE join "\t","Seq",@sample,"\n";
+foreach my $seq (sort{$on_sum{$b}<=>$on_sum{$a}} keys %on_sum){
+	if($on_sum{$seq} > 0){
+		my $val = $on{$seq};
+		print FILE $seq;
+		foreach $ele (@sample){
+			if(exists $val->{$ele}){
+				print FILE "\t$val->{$ele}";
+			}
+			else{
+				print FILE "\t0";
+			}
+		}
+		print FILE "\n";
+	}
+}
+
+open FILE,'>NonMiR.txt';
+print FILE join "\t","Seq",@sample,"\n";
+foreach my $seq (sort{$off_sum{$b}<=>$off_sum{$a}} keys %off_sum){
+	if($off_sum{$seq} >0){
+		my $val = $off{$seq};
+		print FILE $seq;
+		foreach $ele (@sample){
+			if(exists $val->{$ele}){
+				print FILE "\t$val->{$ele}";
+			}
+			else{
+				print FILE "\t0";
+			}
+		}
+		print FILE "\n";
+	}
+}

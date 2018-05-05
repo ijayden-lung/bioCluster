@@ -1,0 +1,7 @@
+#!/usr/bin/pperl -w
+open FILE, "Sample_1975.hg19_multianno.txt";
+while(<FILE>){
+	chomp;
+	my @data = split /\t/;
+	print "$data[5]\t$data[9]\n";
+}

@@ -1,0 +1,65 @@
+#!/usr/bin/perl -w
+#
+my ($ort,$output,@input) = @ARGV;
+print "@input\n";
+open OUTPUT, $output;
+open ORT,    $ort;
+print OUTPUT "gene_ID\tgene_name\tPar_Mouse_FPKM\tPar_Rat_FPKM\tRM_Mouse_FPKM\tRM_Mouse+C_FPKM\tRM_Rat_FPKM\tRM_FPKM\tMR_Mouse_FPKM\tMR_Mouse+C_FPKM\tMR_Rat_FPKM\tMR_FPKM\tMOCK_Mouse_FPKM\tMOCK_Mouse+C_FPKM\tMOCK_Rat_FPKM\tMOCK_FPKM\n";
+my @data;
+my %ort;
+my %name;
+while(<ORT>){
+	chomp;
+	my($mouse,$rat) = split;
+	$ort{$rat} = $mouse;
+}
+
+
+for (my $i=0;$i<@input;$i++){
+	open FILE, $input[$i] or die "conut not open file $input[$i]: $!";
+	<FILE>;
+	while(<FILE>){
+		chomp;
+		my ($geneid,$gene_name,$fpkm) = (split)[0,1,7];
+		if(exists $ort{$geneid}){
+			$geneid = $ort{$geneid};
+		}
+		elsif($geneid =~ /ENSR/){
+			print "$geneid\n";
+		}
+		$name{$geneid} = $gene_name;
+		$data[$i]->{$geneid} = $fpkm;
+	}
+	close FILE;
+}
+
+while(my($key,$value) = each %{$data[0]}){
+	print OUTPUT "$key\t$name{$key}\t$value\t$data[1]->{$key}";
+	for(my $i=2;$i<@data;$i+=3){
+		my $sum;
+		my $mouse_fpkm = $data[$i]->{$key};
+		my $mouse_c_fpkm   = $data[$i+1]->{$key};
+		my $rat_fpkm   = $data[$i+2]->{$key};
+		if($i==2){
+			$mouse_fpkm  = $mouse_fpkm*19683743/(19899447+17676935);
+			$mouse_c_fpkm = $mouse_c_fpkm*19899447/(19899447+17676935);
+			$rat_fpkm   = $rat_fpkm*17676935/(19899447+17676935);
+			$sum = $mouse_c_fpkm+$rat_fpkm;
+		}
+		elsif($i==5){
+			$mouse_fpkm  = $mouse_fpkm*17096017/(19255497+17312059);
+			$mouse_c_fpkm = $mouse_c_fpkm*17312059/(19255497+17312059);
+			$rat_fpkm   = $rat_fpkm*19255497/(19255497+17312059);
+			$sum = $mouse_c_fpkm+$rat_fpkm;
+		}
+		elsif($i==8){
+			$mouse_fpkm  = $mouse_fpkm*19182921/(18103935+19374553);
+			$mouse_c_fpkm = $mouse_c_fpkm*19374553/(18103935+19374553);
+			$rat_fpkm   = $rat_fpkm*18103935/(18103935+19374553);
+			$sum = $mouse_c_fpkm+$rat_fpkm;
+		}
+		print OUTPUT "\t$mouse_fpkm\t$mouse_c_fpkm\t$rat_fpkm\t$sum";
+	}
+
+	print OUTPUT "\n";
+}

@@ -1,0 +1,83 @@
+#!/bin/bash
+#PBS -q batch
+#PBS -N PINELINE
+#PBS -l nodes=1:ppn=1
+#PBS -o Log.pineline
+#PBS -j oe 
+#PBS -l walltime=07:30:00
+#PBS -l cput=24:00:00  
+#PBS -l mem=60gb
+#PBS -M longyk@mail.sustc.edu.cn
+#PBS -m e
+#PBS -l host=compute-0-5
+
+Par_M=/home/lyk/data1/four_mis/ASSIGN/mm10_SRR2919536_ens/gene_abund_u.tab
+Par_R=/home/lyk/data1/four_mis/ASSIGN/rn6_SRR2919538_ens/gene_abund_u.tab
+Hyb_M_40=/home/lyk/data1/four_mis/ASSIGN/mm10_SRR2919540_ens/gene_abund_u.tab
+Hyb_M_42=/home/lyk/data1/four_mis/ASSIGN/mm10_SRR2919542_ens/gene_abund_u.tab
+Hyb_M_44=/home/lyk/data1/four_mis/ASSIGN/mm10_SRR2919544_ens/gene_abund_u.tab
+Hyb_M_C_40=/home/lyk/data1/four_mis/ASSIGN/mm10+comn_SRR2919540_ens/gene_abund_u.tab
+Hyb_M_C_42=/home/lyk/data1/four_mis/ASSIGN/mm10+comn_SRR2919542_ens/gene_abund_u.tab
+Hyb_M_C_44=/home/lyk/data1/four_mis/ASSIGN/mm10+comn_SRR2919544_ens/gene_abund_u.tab
+Hyb_R_40=/home/lyk/data1/four_mis/ASSIGN/rn6_SRR2919540_ens/gene_abund_u.tab
+Hyb_R_42=/home/lyk/data1/four_mis/ASSIGN/rn6_SRR2919542_ens/gene_abund_u.tab
+Hyb_R_44=/home/lyk/data1/four_mis/ASSIGN/rn6_SRR2919544_ens/gene_abund_u.tab
+output1=">/home/lyk/Gra_Pro/lisun_script/table_MOUSE_FPKM_FOR_XIAOXUE.tsv";
+output2=">/home/lyk/Gra_Pro/lisun_script/table_RAT_FPKM_FOR_XIAOXUE.tsv";
+perl generate_table_fpkm_for_xiaoxue.pl "$output1" "$output2" "$Par_M" "$Par_R" "$Hyb_M_40" "$Hyb_M_C_40"  "$Hyb_R_40" "$Hyb_M_42" "$Hyb_M_C_42" "$Hyb_R_42"  "$Hyb_M_44" "$Hyb_M_C_44" "$Hyb_R_44"
+
+
+#####Use our own calculated fpkm
+input="/home/lyk/Gra_Pro/lisun_script/table_FPKM2.tsv";
+#####Use stringtie fpkm
+#input="/home/lyk/Gra_Pro/lisun_script/table_FPKM.tsv";
+output=">/home/lyk/Gra_Pro/lisun_script/table_filter_FPKM.tsv"
+abort=">/home/lyk/Gra_Pro/lisun_script/table_abort_FPKM.tsv"
+min=0.001
+#perl filter_low_abund_gene.pl "$input" "$output" "$abort" "$min";
+
+
+input="/home/lyk/Gra_Pro/lisun_script/table_filter_FPKM.tsv";
+output=">/home/lyk/Gra_Pro/lisun_script/table_filter_compare_allele.tsv"
+#perl allele_specific_exp.pl "$input" "$output"
+
+####Draw Scatter plot before qualtity control
+input=/home/lyk/Gra_Pro/lisun_script/table_filter_compare_allele.tsv
+scatter1=/home/lyk/r_script/file/Scatter_MOCK.png
+scatter2=/home/lyk/r_script/file/Scatter_RM.png
+scatter3=/home/lyk/r_script/file/Scatter_MR.png
+#/home/lyk/r_script/scatter_plot.r "$input" "$scatter1" "$scatter2"  "$scatter3"
+scatter4=/home/lyk/r_script/file/Scatter_QC_MOCK.png
+scatter5=/home/lyk/r_script/file/Scatter_QC_RM.png
+scatter6=/home/lyk/r_script/file/Scatter_QC_MR.png
+
+input1=/home/lyk/Gra_Pro/lisun_script/table_filter_compare_allele.tsv
+input2=/home/lyk/Gra_Pro/lisun_script/table_filter_FPKM.tsv
+output1=/home/lyk/Gra_Pro/lisun_script/table_QC_filter_compare_allele.tsv
+output2=/home/lyk/Gra_Pro/lisun_script/table_QC_filter_FPKM.tsv
+abort1=/home/lyk/Gra_Pro/lisun_script/table_outlier_compare.tsv
+abort2=/home/lyk/Gra_Pro/lisun_script/table_outlier_FPKM.tsv
+#perl quality_control.pl "$input1" "$input2" "$output1" "$output2"  "$abort1" "$abort2" "$scatter1" "$scatter2"  "$scatter3" "$scatter4" "$scatter5" $scatter6
+
+
+
+input=/home/lyk/Gra_Pro/lisun_script/table_QC_filter_FPKM.tsv
+output=/home/lyk/Gra_Pro/lisun_script/table_QC_filter_dominant.tsv
+#perl dominant.pl "$input" "$output"
+
+threshold=(0.05 0.1 0.2 0.3 0.4 0.5 0.6)
+rm /home/lyk/Gra_Pro/lisun_script/type_info.tsv
+for t in ${threshold[*]}
+do
+
+	#input=/home/lyk/Gra_Pro/lisun_script/table_QC_filter_FPKM.tsv
+	input=/home/lyk/Gra_Pro/lisun_script/table_QC_filter_dominant.tsv
+	output=/home/lyk/Gra_Pro/lisun_script/table_category_QC_filter_dominant_${t}.tsv
+	type_info=/home/lyk/Gra_Pro/lisun_script/type_info.tsv
+	figure1=/home/lyk/r_script/file/Category_RM_${t}.pdf
+	figure2=/home/lyk/r_script/file/Category_MR_${t}.pdf
+	figure3=/home/lyk/r_script/file/Category_MOCK_${t}.pdf
+
+	#perl category.pl "$input" "$output" "$type_info" "$t"
+	#./category_scatter.r "$output"  "$figure1" "$figure2" "$figure3"
+done

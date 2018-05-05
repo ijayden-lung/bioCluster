@@ -1,0 +1,32 @@
+#!/usr/bin/perl -w
+#
+#
+#
+my ($input,$output,$abort,$min_fpkm) = @ARGV;
+open INP, $input or die "Cannot open $input: $!";
+open OUT, $output or die "Cannot open $output: $!";
+open FIL, $abort or die "Cannot open $abort: $!";
+my $header = <INP>;
+chomp $header;
+print OUT "$header\tFLAG\n";
+while(<INP>){
+	chomp;
+	my @data = split;
+	for(my $i=2;$i<@data;$i++){
+		$data[$i] += $min_fpkm;
+	}
+	my ($par_m,$par_r,$rm_m,$rm_r,$mr_m,$mr_r,$mix_m,$mix_r) = @data[2,3,4,6,8,10,12,14];
+	my ($rm_fpkm,$mr_fpkm,$mock_fpkm) = @data[7,11,15];
+	if($rm_fpkm <1 || $mr_fpkm<1 || $mock_fpkm<1){
+		print FIL "$_\tLow_Abundance\n";
+	}
+	elsif(($rm_m<1 && $rm_r/$rm_m>50) || ($mr_m<1 && $mr_r/$mr_m>50) || ($mix_m<1 && $mix_r/$mix_m>50)){
+		print FIL "$_\tRat_Specific\n";
+	}
+	elsif(($rm_r<1 && $rm_m/$rm_r>50) || ($mr_r<1 && $mr_m/$mr_r>50) || ($mix_r<1 && $mix_m/$mix_r>50)){
+		print FIL "$_\tMouse_Specific\n";
+	}
+	else{
+		print OUT join "\t",@data,"\n";
+	}
+}

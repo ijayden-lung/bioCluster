@@ -1,0 +1,8 @@
+#!/usr/bin/perl -w
+open FILE, '/2_disk/longyk/gene_name';
+open FILE2, '>/2_disk/longyk/gene_name_line';
+$a = <FILE>;
+@b = split /\:/, $a;
+foreach $ele (@b){
+	print FILE2 "$ele\n";
+}

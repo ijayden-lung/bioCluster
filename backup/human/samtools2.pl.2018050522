@@ -1,0 +1,131 @@
+#!/user/bin/perl
+use Time::HiRes qw/time/;
+my $t1 = time();
+
+print "time for samtools2: fraction = 16\n";
+
+open FILE1, '/2_disk/longyk/human/lastColumn2.txt';
+open FILE2, '/2_disk/longyk/human/location2.txt';
+open BASENUM, '/2_disk/longyk/human/baseNum2.txt';
+my $L = <FILE1>;  ###this is the whole chromsome without N and atcg;
+my @fm = <FILE2>;###this is fm index.
+my @baseInfo = <BASENUM>; 
+close FILE1;
+close FILE2,
+    close BASENUM;
+my $t2 = time();
+my $time = $t2-$t1;
+print "time1: $time\n";
+
+open TALLYA, '/2_disk/longyk/A';
+@A = <TALLYA>;
+close TALLYA;
+open TCLLYC, '/2_disk/longyk/C';
+@C = <TCLLYC>;
+close TCLLYC;
+open TGLLYG, '/2_disk/longyk/G';
+@G = <TGLLYG>;
+close TGLLYG;
+open TTLLYT, '/2_disk/longyk/T';
+@T = <TTLLYT>;
+close TTLLYT;
+
+my $SN = $baseInfo[0];
+my $LN = $baseInfo[5];
+#open FILE,  '/1_disk/public_resources/jiankuihe-exome-1.fq';
+open FILE, '/2_disk/longyk/human/smallreads.fq';
+open FILE2, '>/2_disk/longyk/jkhe2.sam';
+print FILE2 "\@HD\tVN:1.0\tSO:unsorted\n\@SQ\tSN:$SN\tLN:$LN\n\@PG\tID:bowtie2\tPN:bowtie2\tVN:2.1.0\n";
+###these flag are constant.
+my $rnext = "*";
+my $pnext = "0";
+my $tlen  = "0";
+
+my $t3 = time();
+$time = $t3-$t2;
+print "time2: $time\n";
+my $j = 0;
+
+while (<FILE>) {
+    chomp $_;
+    if ( $j % 4 == 0 ) {
+	$qname = substr( $_, 1 );
+    }
+    elsif ( $j % 4 == 1 ) {
+	$seq      = $_;
+	$reversed = reverse $seq;
+	$reversed =~ tr/ATCG/TAGC/;
+	$seqlength = length $seq;
+	$pos1      = &bwt($seq);
+	$pos2      = &bwt($reversed);
+    }
+    elsif ( $j % 4 == 3 ) {
+	$qual = $_;
+	if ( $pos1 ne 0 ) {
+	    $flag  = 0;
+	    $ref   = $species;
+	    $mapq  = 42;
+	    $cigar = $seqlength . "M";
+	    print FILE2 "$qname\t$flag\t$ref\t$pos1\t$mapq\t$cigar\t$rnext\t$pnext\t$tlen\t$seq\t$qual\n";
+	}
+	elsif ( $pos2 ne 0 ) {
+	    $flag  = 16;
+	    $ref   = $species;
+	    $mapq  = 42;
+	    $cigar = $seqlength . "M";
+	    $qual  = reverse $qual;
+	    print FILE2 "$qname\t$flag\t$ref\t$pos2\t$mapq\t$cigar\t$rnext\t$pnext\t$tlen\t$reversed\t$qual\n";
+	}
+	else {
+	    $flag  = 4;
+	    $ref   = "*";
+	    $mapq  = 0;
+	    $cigar = "*";
+	    print FILE2 "$qname\t$flag\t$ref\t0\t$mapq\t$cigar\t$rnext\t$pnext\t$tlen\t$seq\t$qual\n";
+	}
+    }
+    $j++;
+}
+close FILE;
+close FILE2;
+my $t4 = time();
+$time = $t4-$t3;
+print "time3: $time\n\n";
+
+sub bwt {
+    my $int  = 0;
+    my $fin  = $baseInfo[5];
+    my $test = $_[0];
+    my @LL   = ();
+    $frac = 16;
+    for ( my $i = 1 ; $i <= length $test ; $i++ ) {
+	my $next  = substr( $test, -$i,  1 );
+	my $index1 = $int % $frac;
+	if($index1>= $frac/2){
+	    my $scan = substr($L,$int+1,$frac-$index1);
+	    my $count = ( $scan =~ s/$next/$next/g); 
+	    $int = $$next[$int/$frac+0.5] - $count;
+	}
+	else{
+	    my $scan = substr($L,$int-$index1+1,$index1);
+	    my $count = ( $scan =~ s/$next/$next/g);
+	    $int = $$next[$int/$frac] + $count; 
+	}
+	 
+	my $index2 = $fin % $frac;
+	if($index2>= $frac/2){
+	    my $scan = substr($L,$fin+1,$frac-$index2);
+	    my $count = ( $scan =~ s/$next/$next/g); 
+	    $fin = $$next[$fin/$frac+0.5] - $count;
+	}
+	else{
+	    my $scan = substr($L,$fin-$index2+1,$index2);
+	    my $count = ( $scan =~ s/$next/$next/g);
+	    $fin = $$next[$fin/$frac] + $count; 
+	}
+    }  ##通过循环$fin - $int的值不断减少，最后在一定范围内。
+    foreach my $iii ( $int+1 .. $fin ) {
+	push( @LL, $fm[$iii]+1 );  ####這裡的位置加上1變成1-based
+    }
+    return @LL;
+}

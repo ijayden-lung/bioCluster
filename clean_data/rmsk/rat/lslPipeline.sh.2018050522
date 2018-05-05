@@ -1,0 +1,47 @@
+#!/bin/bash
+#PBS -q batch
+#PBS -N featureCounts
+#PBS -l nodes=4:ppn=4
+#PBS -j oe 
+
+cd ~/data1/clean_data/rmsk/rat/
+echo 'Counting...'
+
+GTF="/data1/lyk/cnda/refSeq/rn6.repeatMasker.gtf"
+mouCount="table_fc.tsv"
+STAT='stat_fc.txt'
+#./feature_count.r $GTF $mouCount $STAT
+
+
+echo 'Normlizing...'
+#####NORMALIZE THE READ COUNT
+mouNor="table_norm.tsv"
+mouRef="/data1/lyk/cnda/refSeq/rn6.rmsk"
+READ='88561739,7515828 90754337,7554321 65787452,5529868 107579718,10516726 94731264,9111984 96128743,9296233 77057533,7397282'
+Header='ES1 ES2 ES3 MEF1 MEF2 MEF3 MEF4'
+#perl /data1/lyk/clean_data/rmsk/normlize_gene_count.pl $mouCount $mouNor  $mouRef "$Header" "$READ"
+
+
+########Class or Family
+echo 'Classifying...'
+mouNor="awk '(\$2 ~ /LTR|SINE|LINE/ || NR ==1)' table_norm.tsv |"
+mouNam="table_lsl_name_norm.tsv"
+perl /data1/lyk/clean_data/rmsk/categorize.pl "$mouNor" $mouNam 0 100
+mouFam="table_lsl_family_norm.tsv"
+perl /data1/lyk/clean_data/rmsk/categorize.pl "$mouNor" $mouFam 2 1000
+mouCls="table_lsl_class_norm.tsv"
+perl /data1/lyk/clean_data/rmsk/categorize.pl "$mouNor" $mouCls 1 5000
+
+
+echo 'HeatMaping ...'
+###HeatMap
+classPDF="rn6_lsl_class_enrich.pdf"
+classMain="rn6 repClass"
+familyPDF="rn6_lsl_family_enrich.pdf"
+familyMain="rn6 repFamily"
+namePDF="rn6_lsl_name.pdf"
+nameMain="rn6_repName"
+/data1/lyk/clean_data/rmsk/heatmap.r "$mouCls" "$classPDF" "$classMain" "$mouFam" "$familyPDF" "$familyMain" "$mouNam" "$namePDF" "$nameMain"
+
+
+

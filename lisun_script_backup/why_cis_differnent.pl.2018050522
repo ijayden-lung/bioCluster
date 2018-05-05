@@ -1,0 +1,19 @@
+#!/usr/bin/perl -w
+open FILE, "Combine_0.005_0.2.tsv";
+open FILE2, ">Why_com_differnet.tsv";
+my $header = <FILE>;
+chomp $header;
+print FILE2 "$header\tWenn\n";
+while(<FILE>){
+	chomp;
+	my @data = split;
+	if($data[13] eq "COMPENSATORY" && $data[15] eq "COMPENSATORY"){
+		print FILE2 "$_\tboth\n";
+	}
+	elsif($data[13] eq "COMPENSATORY" && $data[15] ne "COMPENSATORY"){
+		print FILE2 "$_\trm\n";
+	}
+	elsif($data[13] ne "COMPENSATORY" && $data[15] eq "COMPENSATORY"){
+		print FILE2 "$_\tmr\n";
+	}
+}

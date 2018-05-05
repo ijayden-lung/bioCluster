@@ -1,0 +1,24 @@
+#!/usr/bin/perl -w
+#
+my ($input,$output) = @ARGV;
+open INP, $input or die "Cannot open $input,$!";
+open OUT, '>',$output or die "Cannot open $output,$!";
+my $header = <INP>;
+#print OUT "gene_ID\tgene_name\tRM_Mouse\tRM_Rat\tMR_Mouse\tMR_Rat\tMOCK_Mouse\tMOCK_Rat\n";
+print OUT "gene_ID\tgene_name\tRM_Mouse\tRM_Rat\tMR_Mouse\tMR_Rat\tMOCK_Mouse\tMOCK_Rat\n";
+while(<INP>){
+	chomp;
+	my @data = split;
+	my ($mouse,$rat) = @data[2,3];
+	#my $m_r = log($mouse/$rat)/log(2);
+	print OUT "$data[0]\t$data[1]";
+	for(my $i=7;$i<@data;$i+=4){
+		my $hyb = $data[$i];
+		#my $hyb_m=$hyb-$mouse;
+		#my $hyb_r=$hyb-$rat;
+		my $hyb_m = log($hyb/$mouse)/log(2);
+		my $hyb_r = log($hyb/$rat)/log(2);
+		print OUT "\t$hyb_m\t$hyb_r";
+	}
+	print OUT "\n";
+}

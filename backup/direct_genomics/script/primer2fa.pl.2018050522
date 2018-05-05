@@ -1,0 +1,27 @@
+#!/usr/bin/perl -w
+
+my $dirname = "/1/longyk/direct_genomics/primer/";
+my @filename = ("tube1_mergeresult.csv","tube2_mergeresult.csv", "tube3_mergeresult.csv", "tube4_mergeresult.csv");
+
+foreach my $filename (@filename){
+	open $filename,"$dirname$filename";
+	my ($tube) = split /\_/, $filename;
+	open FILE1, ">bowtie_in/$tube\_1";
+	open FILE2, ">bowtie_in/$tube\_2";
+	my $i = 0;
+	while(<$filename>){
+		$i++;
+		next if $i ==1;
+		chomp;
+		my ($primer,$fr) = split /\,/;
+		chop $primer;
+		if($i%2==0){
+			print FILE1 ">$primer\_1\n$fr\n";
+			
+		}
+		else{
+			print FILE2 ">$primer\_2\n$fr\n";
+			
+		}
+	}
+}

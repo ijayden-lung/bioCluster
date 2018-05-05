@@ -1,0 +1,38 @@
+#!/share/apps/R/bin/Rscript
+library(ggplot2)
+
+args<-commandArgs(T)
+
+data <-read.table(args[1],sep="\t",header=T)
+
+
+#png(file=args[2])
+pdf(args[2])
+ggplot(data, aes(x = RM_Mouse, y =RM_Rat,colour=Type_RM ))+
+geom_point()+
+#xlim(-5,5)+
+#ylim(-6,6)+
+labs(title = "Different Expression Level Between Species",x = "Log(Hybrid) - Log(Mouse)",y = "Log(Hybrid) - Log(Rat)")+theme(plot.title = element_text(size=15,colour = "black"),axis.title = element_text(size=15,colour = "black"),axis.text = element_text(size=12))
+
+
+#png(file=args[3])
+pdf(args[3])
+ggplot(data, aes(x = MR_Mouse, y =MR_Rat,colour=Type_MR ))+
+geom_point()+
+#xlim(-2000,2000)+
+#ylim(-2000,2000)+
+#xlim(-5,5)+
+#ylim(-6,6)+
+labs(title = "Different Expression Level Between Species",x = "Log(Hybrid) - Log(Mouse)",y = "Log(Hybrid) - Log(Rat)")+theme(plot.title = element_text(size=15,colour = "black"),axis.title = element_text(size=15,colour = "black"),axis.text = element_text(size=12))
+
+
+#png(file=args[4])
+pdf(args[3])
+ggplot(data, aes(x = MOCK_Mouse, y =MOCK_Rat,colour=Type_Mock ))+
+geom_point()+
+#xlim(-2000,2000)+
+#ylim(-2000,2000)+
+#xlim(-5,5)+
+#ylim(-6,6)+
+labs(title = "Different Expression Level Between Species",x = "Log(Hybrid) - Log(Mouse)",y = "Log(Hybrid) - Log(Rat)")+theme(plot.title = element_text(size=15,colour = "black"),axis.title = element_text(size=15,colour = "black"),axis.text = element_text(size=12))
+dev.off()

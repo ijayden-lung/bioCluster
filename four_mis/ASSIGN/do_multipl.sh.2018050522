@@ -1,0 +1,26 @@
+#!/bin/bash
+#
+cat >multiple.sh << EOF
+#!/bin/bash
+#PBS -q batch
+#PBS -N muliple
+#PBS -l nodes=1:ppn=3
+#PBS -o \${out}
+#PBS -j oe 
+
+cd \$inp
+samtools view -H \$bam >multiple.sam
+samtools view \$bam  | awk '(\$5 <255){print}' >>multiple.sam
+samtools view -bS multiple.sam >multiple.bam
+samtools sort -@ 3 multiple.bam -o multiple.sorted.bam
+rm multiple.bam
+rm multiple.sam
+
+EOF
+for i in /data1/lyk/four_mis/ASSIGN/mm10_SRR*/Aligned.sortedByCoord.out.bam
+do
+	inp=${i%\/*}
+	out=${inp##*\/}
+	out=log_$out
+	qsub -v inp=$inp,bam=$i,out=$out multiple.sh 
+done

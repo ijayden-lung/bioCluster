@@ -1,0 +1,10 @@
+#!/bin/bash 
+#PBS -q batch
+#PBS -N prepDE
+#PBS -l nodes=1:ppn=1
+#PBS -j oe 
+#PBS -l host=compute-0-6
+
+cd /data1/lyk/four_mis/ASSIGN/
+python prepDE.py -i mm10_sample_lst.txt -l 194 -g mm10_gene_count_remove.csv
+#python prepDE.py -i rn6_sample_lst.txt  -l 194 -g rn6_gene_count_remove.csv

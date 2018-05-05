@@ -1,0 +1,7 @@
+for i in ../*avinput
+do
+	echo $i
+	basename=$(echo $i | awk -F '[/.]' '{print $4}')
+	echo $basename
+	table_annovar.pl $i /1/longyk/annovar/humandb/ -buildver hg19 -out $basename -remove -otherinfo -protocol refGene,cosmic79,1000g2015aug_all,1000g2015aug_eas,snp138 -operation g,f,f,f,f -nastring .
+done

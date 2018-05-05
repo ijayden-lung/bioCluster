@@ -1,0 +1,19 @@
+#!/usr/bin/perl -w
+
+
+my $sam = $ARGV[0];
+print "$sam\n";
+open FILE, "/data1/lyk/clean_data/top_gene_list";
+system ("samtools view -H /data1/lyk/clean_data/STAR_TRIM/$sam/Aligned.sortedByCoord.out.bam >/data1/lyk/clean_data/WIG/$sam\_top.sam") ;
+while(<FILE>){
+	chomp;
+	my ($chr,undef,undef,$str,$end) = split;
+	$command = "samtools view /data1/lyk/clean_data/STAR_TRIM/$sam/Aligned.sortedByCoord.out.bam $chr:$str-$end >>/data1/lyk/clean_data/WIG/$sam\_top.sam";
+	system "$command";
+
+}
+
+
+system("samtools sort /data1/lyk/clean_data/WIG/$sam\_top.sam -O bam -o /data1/lyk/clean_data/WIG/$sam\_top.sorted.bam");
+system("samtools index /data1/lyk/clean_data/WIG/$sam\_top.sorted.bam");
+system("rm /data1/lyk/clean_data/WIG/$sam\_top.sam")

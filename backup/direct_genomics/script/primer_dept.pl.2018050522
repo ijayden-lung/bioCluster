@@ -1,0 +1,48 @@
+#!/usr/bin/perl -w
+my ($dirname, $filename );
+$dirname = "/1/longyk/direct_genomics/primer/";
+my @file = ("4_S3_L001_R1_001.fastq","4_S3_L001_R2_001.fastq","H_S4_L001_R1_001.fastq","H_S4_L001_R2_001.fastq","M_S1_L001_R1_001.fastq","M_S1_L001_R2_001.fastq","O_S2_L001_R1_001.fastq","O_S2_L001_R2_001.fastq");
+
+
+$dirname2 = "/1/longyk/direct_genomics/fastq/";
+
+opendir (DIR, $dirname ) || die "Error in opening dir $dirname\n";
+while( ($filename = readdir(DIR))){
+	if ($filename =~ "csv"){
+		print "$dirname$filename";
+		foreach my $ele (@file){
+			
+			open DEPT, ">$filename.new";
+
+			open FILE, "$dirname$filename";
+			my $i = 0;
+			while (<FILE>){
+				$i++;
+				next if $i ==1;
+				chomp;
+				my @data = split /\,/;
+				if($i%2==0){
+				
+					my $result = readpipe ("grep -c  $data[1] $dirname2$ele ");
+					chomp $result;
+					print DEPT "$result\n";
+				}
+				else{
+					my $new = $data[1];
+					$new =~ tr/ATCG/TAGC/;
+					$new = reverse $new;
+					my $result = readpipe ("grep -c  $new $dirname2$ele ");
+					chomp $result;
+					print DEPT "$result\n";
+	
+				}
+			close FILE;
+			close DEPT;
+
+			}	
+		}
+	}
+}
+
+
+

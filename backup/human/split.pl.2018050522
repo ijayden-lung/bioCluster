@@ -1,0 +1,17 @@
+#!/usr/bin/perl
+open FILE, '/2_disk/longyk/human/chr21.fasta';##換行的。
+$_ = <FILE>;
+chomp;
+$a = substr($_,1);
+$i = 0;
+while (<FILE>) {
+    chomp;
+    my $length = length $_;
+    my $location = $i*$length;
+    if($_ !~ /N/ && $_ !~ /[a-z]+/ ){
+	open SIF, ">/2_disk/longyk/human/$a/$i";
+	print SIF "$_";
+    }
+    $i++;
+}
+

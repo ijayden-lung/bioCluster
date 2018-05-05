@@ -1,0 +1,9 @@
+#!/bin/bash
+
+for i in */*somatic.maf.gz
+do
+	gunzip -k $i
+	j=${i%.*}
+	mv $j /1/longyk/direct_genomics/maf/
+done
+

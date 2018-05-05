@@ -1,0 +1,39 @@
+#!/bin/bash
+#PBS -q batch
+#PBS -N featureCounts
+#PBS -l nodes=4:ppn=4
+#PBS -j oe 
+
+
+
+cd ~/data1/clean_data/rmsk/prost/
+
+echo 'Sorting...'
+
+
+ANNO='../Anno_erv1.gtf'
+TABLE='table_fc_erv1.tsv'
+echo 'Counting...'
+#./feature_count2.r $ANNO $TABLE 'stat_fc.txt'
+
+
+echo 'Normalizing...'
+NORM='Norm_erv1.tsv'
+#READ='55466733,1140137 56008815,1087045 49862208,1041942 56489417,1144368'
+READ='115755393,4344214 99720001,3576689 103270809,3766845 111163644,4215956 113548819,4269220 112010375,3995017'
+#perl ../add_tag_norm.pl $ANNO $TABLE $NORM "$READ" 
+
+
+echo 'Filteriing...'
+FILTER='Filter_Norm_erv1.tsv'
+MIN=20
+HEADER="gene_name	GS689.1	GS689.2	GS689.3	PC3E.1	PC3E.2	PC3E.3	Tag"
+perl ../filter.pl $NORM $FILTER $MIN "$HEADER"
+
+echo 'BoxPloting...'
+PDF='BoxPlot_erv1.pdf'
+#../boxplot.r $FILTER $PDF
+
+echo 'ScatterPloting...'
+PDF='ScatterPlot_erv1.pdf'
+./scatterplot.r $FILTER $PDF

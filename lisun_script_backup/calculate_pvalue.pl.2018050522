@@ -1,0 +1,54 @@
+#!/usr/bin/perl -w
+use Statistics::R;
+use Math::Round;
+
+my ($read,$out,$hyb,$p,$norm) = @ARGV;
+
+open READ, $read or die "Cannot open FILE $read,$!";
+open OUT, '>',$out  or die "Cannot open FILE $out,$!";
+$p = 0.5;
+#open READ, "table_QC_filter_readcount.tsv";
+#open OUT, ">table_QC_fiter_pvalue.tsv";
+print OUT "gene_id\tgene_name\tHyb_M_Hits\tHyb_R_Hits\tHyb_Bin_pvalues\tHyb_Bin_qvalues\tPar_M_Hits\tPar_R_Hits\tPar_R_Hits_Norm\tPar_Bin_pvalues\tPar_Bin_qvalues\tFET_pvalues\tFET_qvalues\tLog2_Hyb_MR\tLog2_Par_MR\n";
+
+my $cmds = <<EOF;
+par_pvalue <- binom.test(c(par_mouse,par_rat),p=$p)
+hyb_pvalue <- binom.test(c(hyb_mouse,hyb_rat),p=$p)
+x = c(par_mouse,par_rat,hyb_mouse,hyb_rat)
+alle<-matrix(x, nrow=2)
+fet_pvalue <- fisher.test(alle)
+fet_pvalue
+EOF
+my $R = Statistics::R->new();
+my $header = <READ>;
+while(<READ>){
+	chomp;
+	my ($gene_id,$gene_name,$Par_M_Hits,$RM_M_Hits,$MR_M_Hits,$MOCK_M_Hits,$Par_R_Hits,$RM_R_Hits,$MR_R_Hits,$MOCK_R_Hits)=split;
+	my $Par_R_Hits_Norm = round($Par_R_Hits/$norm);
+	my ($Hyb_M_Hits,$Hyb_R_Hits);
+	if($hyb eq "RM"){
+		($Hyb_M_Hits,$Hyb_R_Hits) = ($RM_M_Hits,$RM_R_Hits);
+	}
+	elsif($hyb eq "MR"){
+		($Hyb_M_Hits,$Hyb_R_Hits) = ($MR_M_Hits,$MR_R_Hits);
+	}
+	elsif($hyb eq "MOCK"){
+		($Hyb_M_Hits,$Hyb_R_Hits) = ($MOCK_M_Hits,$MOCK_R_Hits);
+	}
+	else{
+		print "Please enter the correct hyb type: RM, MR, MOCK\n";
+	}
+	$R->set('par_mouse',$Par_M_Hits);
+	$R->set('par_rat',$Par_R_Hits_Norm);
+	$R->set('hyb_mouse',$Hyb_M_Hits);
+	$R->set('hyb_rat',$Hyb_R_Hits);
+	my $out = $R->run($cmds);
+	my $par_pvalue = $R->get('par_pvalue');
+	my $hyb_pvalue = $R->get('hyb_pvalue');
+	my $fet_pvalue = $R->get('fet_pvalue');
+	$fet_pvalue = (split /\s/,$fet_pvalue)[12];
+	my $log2_hyb_mr = log($Hyb_M_Hits/$Hyb_R_Hits)/log(2);
+	my $log2_par_mr = log($Par_M_Hits/$Par_R_Hits_Norm)/log(2);
+	print OUT "$gene_id\t$gene_name\t$Hyb_M_Hits\t$Hyb_R_Hits\t$hyb_pvalue->[18]\t0\t$Par_M_Hits\t$Par_R_Hits\t$Par_R_Hits_Norm\t$par_pvalue->[18]\t0\t$fet_pvalue\t0\t$log2_hyb_mr\t$log2_par_mr\n";
+}
+

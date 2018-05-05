@@ -1,0 +1,150 @@
+#!/usr/bin/perl -w
+
+#PBS -q batch
+#PBS -N Assigned
+#PBS -l nodes=1:ppn=1
+#PBS -o /home/lyk/Gra_Pro/STAR/$sample
+#PBS -j oe 
+#PBS -l walltime=50:30:00
+#PBS -l cput=48:00:00  
+#PBS _l host=compute-0-5
+#
+use 5.010;
+use List::Util qw(first max maxstr min minstr reduce shuffle sum);
+use List::Pairwise qw(mapp grepp);
+
+my $sample = $ARGV[0];
+
+my $start = time();
+open FILE, ">/data1/lyk/chenlab/$sample\_Assign.txt";
+print FILE "Mismatch\tmm10\trn6\tCommon\tr2m\tm2r\n";
+
+my $mouse = "samtools view -f 67 /data1/lisun/fusion_cell/STAR/mm10_$sample/Aligned.sortedByCoord.out.bam | awk '{print \$1,\$14}' |";
+my $rat   = "samtools view -f 67 /data1/lisun/fusion_cell/STAR/rn6_$sample/Aligned.sortedByCoord.out.bam  | awk '{print \$1,\$14}' |";
+my $asg_m = ">/home/lyk/data1/chenlab/STAR/assign/mm10_$sample";
+my $asg_r = ">/home/lyk/data1/chenlab/STAR/assign/rn6_$sample";
+my $unasg = ">/home/lyk/data1/chenlab/STAR/assign/comn_$sample";
+my @data = &assign($mouse,$rat,$asg_m,$asg_r,$unasg);
+print FILE "$sample\t$data[0]\t$data[1]\t$data[2]\t$data[3]\t$data[4]\n";
+
+my $end = time();
+my $time = $end -$start;
+print "time: $time s\n";
+
+sub assign{
+	open MOU, $_[0];
+	open RAT, $_[1];
+	open ASM, $_[2];
+	open ASR, $_[3];
+	open UN,  $_[4];
+
+	my (%mm10,%rn6);
+	my ($mm10,$rn6,$common,$r2m,$m2r);
+	while (<MOU>){
+		chomp;
+		my ($RNAME,$AS) = split;
+		my (undef,undef,$aScore)   = split /:/,$AS;
+		$mm10{$RNAME} .= "$aScore\t0\t";
+	}
+	close MOU;
+
+	my $mm10_ref = &maxAS(\%mm10);
+	undef %mm10;
+
+	while(<RAT>){
+		chomp;
+		my ($RNAME,$AS) = split;
+		my (undef,undef,$aScore)   = split /:/,$AS;
+		$rn6{$RNAME} .= "$aScore\t0\t";
+	}
+	close RAT;
+
+	my $rn6_ref = &maxAS(\%rn6);
+	undef %rn6;
+	my %mm10_new = %$mm10_ref;
+	my %rn6_new  = %$rn6_ref;
+	while(my ($key,$value) = each %mm10_new){
+		if(exists $rn6_new{$key}){
+			my ($as1,$mis1) = split /\t/,$value;
+			my ($as2,$mis2) = split /\t/,$rn6_new{$key};
+			if($as1<$as2){
+				$rn6++;
+				$m2r++ if($key =~ /^SRR2919536/);
+				say ASR $key;
+			}
+			elsif($as1>$as2){
+				$mm10++;
+				$r2m++ if($key =~ /^SRR2919538/);
+				say ASM $key;
+			}
+			else{
+				if($mis1>$mis2){
+					$rn6++;
+					$m2r++ if($key =~ /^SRR2919536/);
+					say ASR $key;
+				}
+				elsif($mis1<$mis2){
+					$mm10++;
+					$r2m++ if($key =~ /^SRR2919538/);
+					say ASM $key;
+				}
+				else{
+					$common++;
+					say UN $key;
+				}
+			}
+
+		}
+		else{
+			$mm10++;
+			$r2m++ if($key =~ /^SRR2919538/);
+			say ASM $key;
+		}
+	}
+	
+	while(my ($key,$value) = each %rn6_new){
+		if(!exists $mm10_new{$key}){
+			$rn6++;
+			$m2r++ if($key =~ /^SRR2919536/);
+			say ASR $key;
+		}
+	}
+	return ($mm10,$rn6,$common,$r2m,$m2r);
+}
+
+
+sub maxAS{
+	my $hash_r = $_[0];
+	my %hash = %$hash_r;
+	while(my($key,$value) = each %hash){
+		my @data = split /\t/,$value;
+		if($#data >1){
+			my @AS = mapp {$a} @data;
+			my @nM = mapp {$b} @data;
+			my $maxAS = max @AS;
+			#####FROM THE MAX AS SCORE,SELETE THE MINIUM MISMATCH NUMBER;
+			my $minnM = $nM[0];
+			if($#nM >0){
+				$minnM = min (mapp{$b} (grepp {$a == $maxAS} @data));
+			}
+			$hash{$key} = "$maxAS\t$minnM\t";
+		}
+	}
+	return \%hash;
+}
+
+sub meanAS{
+	my $hash_r = $_[0];
+	my %hash = %$hash_r;
+	while(my($key,$value) = each %hash){
+		my @data = split /\t/,$value;
+		if($#data >1){
+			my @AS = mapp {$a} @data;
+			my @nM = mapp {$b} @data;
+			my $meanAS = (sum @AS)/(scalar @AS);
+			my $meannM = (sum @nM)/(scalar @nM);
+			$hash{$key} = "$meanAS\t$meannM";
+		}
+	}
+	return \%hash;
+}

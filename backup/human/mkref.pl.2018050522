@@ -1,0 +1,13 @@
+#!/usr/bin/perl
+open FILE, '/1_disk/public_resources/hg19.fa';##換行的。
+while (<FILE>) {
+    chomp $_;
+    if($_ =~ />/){
+	$chrom = substr($_,1);
+        open $chrom, '>/2_disk/longyk/'.$chrom.'.fa';
+    }
+    else{
+	print $chrom "$_";
+    }
+    
+}

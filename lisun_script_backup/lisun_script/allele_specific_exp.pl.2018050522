@@ -1,0 +1,18 @@
+#!/usr/bin/perl -w
+#
+my ($input,$output) = @ARGV;
+open INP, $input or die "Cannot open $input,$!";
+open OUT, $output or die "Cannot open $output,$!";
+my $header = <INP>;
+print OUT "gene_ID\tgene_name\tPar\tRM\tMR\tMOCK\n";
+while(<INP>){
+	chomp;
+	my @data = split;
+	my $par = log($data[2]/$data[3])/log(2);
+	print OUT "$data[0]\t$data[1]\t$par";
+	for(my $i=4;$i<@data;$i+=4){
+		my $hyb = log($data[$i]/$data[$i+2])/log(2);
+		print OUT "\t$hyb";
+	}
+	print OUT "\n";
+}

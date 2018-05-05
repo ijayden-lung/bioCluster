@@ -1,0 +1,60 @@
+#!/usr/bin/perl -w
+
+
+my %ort;
+my %mouse;
+my %rat;
+my @mouse;
+my @rat;
+my ($ort,$qc,$readcount1,$readcount2,$output) = @ARGV;
+open ORT,    $ort;
+open QC ,    $qc;
+
+while(<ORT>){
+	chomp;
+	my($mouse,$rat) = split;
+	$ort{$rat} = $mouse;
+}
+my %name;
+<QC>;
+while(<QC>){
+	chomp;
+	my ($gene_id,$gene_name) = split;
+	$name{$gene_id} = $gene_name;
+}
+
+open MOU, $readcount1;
+my $header = <MOU>;
+while(<MOU>){
+	chomp;
+	my @data = split /,/;
+	$data[0]  =~ s/\"//g;
+	$mouse{$data[0]} = "$data[1]\t$data[3]\t$data[4]\t$data[5]";
+}
+
+
+open RAT, $readcount2;
+$header = <RAT>;
+while(<RAT>){
+	chomp;
+	my @data = split /,/;
+	$data[0]  =~ s/\"//g;
+	if(exists $ort{$data[0]}){
+		$gene_id = $ort{$data[0]};
+		$rat{$gene_id} = "$data[2]\t$data[3]\t$data[4]\t$data[5]";
+	}
+	else{
+		print "$data[0]\n";
+	}
+}
+
+open OUT, '>',$output;
+print OUT "gene_id\tgene_name\tPar_M_Hits\tRM_M_Hits\tMR_M_Hits\tMOCK_M_Hits\tPar_R_Hits\tRM_R_Hits\tMR_R_Hits\tMOCK_R_Hits\n";
+foreach my $gene (keys %name){
+	if(exists $rat{$gene}){
+		print OUT "$gene\t$name{$gene}\t$mouse{$gene}\t$rat{$gene}\n";
+	}
+	else{
+		print "$gene\n";
+	}
+}

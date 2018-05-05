@@ -1,0 +1,28 @@
+#!/usr/bin/perl -w
+
+open FILE, 'mouse2rat_refSeq.ort';
+open FILE2, 'mouse2rat_ensembl.ort';
+my %hash;
+
+while(<FILE>){
+	chomp;
+	my ($m, $r) = split;
+	$hash{$m} = $r;
+}
+my $common;
+while(<FILE2>){
+	chomp;
+	my ($m, $r) = split;
+	if (exists $hash{$m}){
+		if($hash{$m} ne $r){
+			print "$_\n";
+			$common++;
+		}
+	}
+	else{
+		print "$_\n";
+		$common++;
+	}
+}
+
+print "$common\n";

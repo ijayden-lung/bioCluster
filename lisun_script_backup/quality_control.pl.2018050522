@@ -1,0 +1,146 @@
+#!/usr/bin/perl -w
+use Statistics::R;
+
+
+my ($input1,$input2,$output1,$output2,$abort1,$abort2,@figure) = @ARGV;
+
+######Drawing figure before Quality Control;
+# Here-doc with multiple R commands:
+my ($input,$fig1,$fig2,$fig3) = ($input1,@figure[0..2]);
+my $cmds = <<EOF;
+library(ggplot2)
+data <-read.table("$input",sep="\t",header=T,row.names=1)
+
+#sub=data\$Par-data\$MOCK
+#quan <- quantile(sub)
+reg<-lm(Par ~ MOCK,data=data)
+stat<-summary(reg)
+stat
+l <- list(a = format(coef(reg)[1], digits = 4),
+          b = format(abs(coef(reg)[2]), digits = 4),
+		  r2 = format(summary(reg)\$r.squared, digits = 4),
+		  p = format(summary(reg)\$coefficients[2,4], digits = 4))
+
+ eq <- substitute(italic(y) == a - b %.% italic(x)*","~~italic(r)^2~"="~r2,l)
+							  
+
+#####Draw Separete Parental and Mixed Paretal
+png(file="$fig1")
+ggplot(data, aes(x = MOCK, y = Par))+geom_point()+labs(x = "Log2 Mixed Parental(M/S)",y = "Log2 Separated Parental(M/S)")+
+#geom_text(aes(x = -4, y = 5, label = as.character(as.expression(eq))), parse = TRUE)+
+theme(axis.title = element_text(size=15,colour = "black"),axis.text = element_text(size=12),title= element_text(size=20, color="red"))+
+geom_smooth(method = "lm", se=FALSE, color="blue", formula = y ~ x)+
+xlim(-10,10)+
+ylim(-10,10)
+
+#####Draw Separate Parental and RM
+png(file="$fig2")
+ggplot(data, aes(x = RM, y = Par))+geom_point()+labs(x = "Log2 Hybrid RM(M/S)",y = "Log2 Separated Parental(M/S)")+
+theme(axis.title = element_text(size=15,colour = "black"),axis.text = element_text(size=12))+
+geom_smooth(method = "lm", se=FALSE, color="blue", formula = y ~ x)+
+xlim(-10,10)+
+ylim(-10,10)
+
+
+#####Draw Separate Parental and MR
+png(file="$fig3")
+ggplot(data, aes(x = MR, y = Par))+geom_point()+labs(x = "Log2 Hybrid MR(M/S)",y = "Log2 Separated Parental(M/S)")+
+theme(axis.title = element_text(size=15,colour = "black"),axis.text = element_text(size=12))+
+geom_smooth(method = "lm", se=FALSE, color="blue", formula = y ~ x)+
+xlim(-10,10)+
+ylim(-10,10)
+dev.off()
+EOF
+
+#Run simple R commands
+my $R = Statistics::R->new();
+my $out = $R->run($cmds);
+my $stat = $R->get( 'stat' );
+my @stat = @$stat;
+print "STAT Before QC\n$out\n";
+
+my($Q1,$F,$Q3,$inter,$k) = @stat[16,17,18,28,34];
+my $QR = $Q3-$Q1;
+my $in_limit_up = $Q3+$QR*3;
+my $in_limit_down = $Q1-$QR*3;
+my $out_limit_up = $F+$QR*4;
+my $out_limit_down = $F-$QR*4;
+
+open COMP, $input1 or die "Cannot open $input1,$!";
+open FPKM, $input2 or die "Cannot open $input2,$!";
+open OUT1, '>',$output1 or die "Cannot open $output1,$!";
+open OUT2, '>',$output2 or die "Cannot open $output2,$!";
+open ABR1, '>',$abort1 or die "Cannot open $abort1,$!";
+open ABR2, '>',$abort2 or die "Cannot open $abort2,$!";
+my $header1 = <COMP>;
+print ABR1 $header1;
+print OUT1 $header1;
+my $header2 = <FPKM>;
+print ABR2 $header2;
+print OUT2 $header2;
+
+my %hash;
+while(<COMP>){
+	chomp;
+	my @data = split;
+	my $dev = $data[2]-$k*$data[5]-$inter;
+	#if($dev > $out_limit_up || $dev < $out_limit_down){
+	if($dev > $in_limit_up || $dev < $in_limit_down){
+		$hash{$data[0]} = undef;
+		print ABR1 "$_\n";
+	}
+	else{
+		print OUT1 "$_\n";
+	}
+}
+while(<FPKM>){
+	chomp;
+	my @data = split;
+	if(exists $hash{$data[0]}){
+		print ABR2 "$_\n";
+	}
+	else{
+		print OUT2 "$_\n";
+	}
+}
+
+
+($input,$fig1,$fig2,$fig3) = ($output1,@figure[3..5]);
+$cmds = <<EOF;
+library(ggplot2)
+data <-read.table("$input",sep="\t",header=T)
+
+reg<-lm(Par ~ MOCK,data=data)
+summary(reg)
+
+#####Draw Separete Parental and Mixed Paretal
+png(file="$fig1")
+ggplot(data, aes(x = MOCK, y = Par))+geom_point()+labs(x = "Log2 Mixed Parental(M/S)",y = "Log2 Separated Parental(M/S)")+
+theme(axis.title = element_text(size=15,colour = "black"),axis.text = element_text(size=12))+
+geom_smooth(method = "lm", se=FALSE, color="blue", formula = y ~ x)+
+xlim(-10,10)+
+ylim(-10,10)
+
+#####Draw Separate Parental and RM
+png(file="$fig2")
+ggplot(data, aes(x = RM, y = Par))+geom_point()+labs(x = "Log2 Hybrid RM(M/S)",y = "Log2 Separated Parental(M/S)")+
+theme(axis.title = element_text(size=15,colour = "black"),axis.text = element_text(size=12))+
+geom_smooth(method = "lm", se=FALSE, color="blue", formula = y ~ x)+
+xlim(-10,10)+
+ylim(-10,10)
+
+
+#####Draw Separate Parental and MR
+png(file="$fig3")
+ggplot(data, aes(x = MR, y = Par))+geom_point()+labs(x = "Log2 Hybrid MR(M/S)",y = "Log2 Separated Parental(M/S)")+
+theme(axis.title = element_text(size=15,colour = "black"),axis.text = element_text(size=12))+
+geom_smooth(method = "lm", se=FALSE, color="blue", formula = y ~ x)+
+xlim(-10,10)+
+ylim(-10,10)
+dev.off()
+EOF
+
+#Run simple R commands
+my $R2 = Statistics::R->new();
+$out = $R2->run($cmds);
+print "STAT AFTER QC\n$out\n";

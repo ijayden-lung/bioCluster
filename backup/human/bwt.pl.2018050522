@@ -1,0 +1,72 @@
+#!/user/bin/perl
+use Time::HiRes qw/time/;
+my $t1 = time();
+open FILE1, '/2_disk/longyk/human/lastColumn.txt';
+open FILE2, '/2_disk/longyk/human/location.txt';
+open BASENUM, '/2_disk/longyk/human/baseNum.txt';
+my $L = <FILE1>;  ###this is the whole chromsome without N and atcg;
+my @location = <FILE2>;###this is fm index.
+my @baseInfo = <BASENUM>;  ###this is the base information.
+close FILE1;
+close FILE2,
+    close BASENUM;
+print "$location[0]\n@baseInfo\n";
+my $t2 = time();
+$time = $t2-$t1;
+print "time1： $time\n";
+
+###这里是计算Tally，分别计算ACGT。
+$length = length $L;  ###因為初始無效，多一個$符號。
+@A = (0) x $length;
+@C = (0) x $length;
+@G = (0) x $length;
+@T = (0) x $length;
+open TALLY, '/2_disk/longyk/human/tally.txt';
+$i=0;
+while(<TALLY>){
+    my @tally = split /\t/;
+    $A[$i] = $tally[0];
+    $C[$i] = $tally[1];
+    $G[$i] = $tally[2];
+    $T[$i] = $tally[3];
+    $i++;
+}
+close TALLY;
+my $t3 = time();
+$time = $t3-$t2;
+print "time2: $time\n\n";
+
+###here test yor segnment AGGTTACG
+$t;
+while($t ne "N"){
+    print "ENTER:\n";
+    $t = <>;
+    my $t4 = time();
+    chomp $t;
+    @B = &bwt($t);
+    print "@B";
+    my $t5 = time();
+    $time = $t5-$t4;
+    print "time3: $time\n";
+}
+
+
+
+
+
+sub bwt {
+    my $int  = 0;
+    my $fin  = $baseInfo[5];
+    my $test = $_[0];
+    my @LL   = ();
+    for ( my $i = 1 ; $i <= length $test ; $i++ ) {
+	my $next  = substr( $test, -$i,  1 );
+	my $match = substr($L,$int,1); 
+	$int = $$next[ $int]; 
+	$fin = $$next[ $fin];
+    }  ##通过循环$fin - $int的值不断减少，最后在一定范围内。
+    foreach my $iii ( $int+1 .. $fin ) {
+	push( @LL, $location[$iii]+1 );  ####這裡的位置加上1變成1-based
+    }
+    return @LL;
+}

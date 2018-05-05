@@ -1,0 +1,13 @@
+#!/bin/bash
+#PBS -q batch
+#PBS -N STARINDEX
+#PBS -l nodes=1:ppn=1
+#PBS -j oe 
+
+subspecies='CBA_J'
+cd  /data1/lyk/cnda/BWA_INDEX/
+
+
+#STAR --runThreadN 32 --runMode genomeGenerate --genomeDir /data1/lyk/cnda/STAR_INDEX/$subspecies --genomeFastaFiles /home/wanghao/data1/PA_project/mouse_ref/$subspecies\.chromosomes.unplaced.gt2k.fa.masked 
+
+bwa index  -p $subspecies -a bwtsw /home/wanghao/data1/PA_project/mouse_ref/$subspecies\.chromosomes.unplaced.gt2k.fa.masked

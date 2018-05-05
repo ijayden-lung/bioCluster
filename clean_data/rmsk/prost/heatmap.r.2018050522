@@ -1,0 +1,10 @@
+#!/home/lisun/prog/R/bin/Rscript
+library("pheatmap")
+
+#args<-commandArgs(T)
+args<- c('table_name_norm.tsv','hg38_name_enrich.pdf','hg38 repName')
+
+
+###Repeat Name
+data <-as.matrix(read.table(args[1],header=TRUE,row.names=1))
+pheatmap(data, cellwidth = 15, cellheight = 1, fontsize=6, fontsize_row=1,main=args[3],clustering_distance_rows="manhattan",clustering_distance_cols="manhattan",filename=args[2])

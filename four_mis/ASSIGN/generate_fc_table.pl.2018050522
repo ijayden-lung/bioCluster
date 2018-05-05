@@ -1,0 +1,72 @@
+#!/usr/bin/perl -w
+
+my ($mm10,$rn6,$mm10_table,$rn6_table) = @ARGV;
+
+
+
+
+open FILE, "$mm10";
+my %hash;
+my $i = 0;
+while(<FILE>){
+	chomp;
+	$i++;
+	if($i >=86 && $i < 86+1554){
+		my ($gene,$count) = split /\s+/;
+		$hash{$gene}->[0] = $count;
+	}
+	elsif($i >= 87+1554 && $i < 87+1554*2 ){
+		my ($gene,$count) = split /\s+/;
+		$hash{$gene}->[1] = $count;
+	}
+	elsif($i >= 88+1554*2 && $i < 88+1554*3 ){
+		my ($gene,$count) = split /\s+/;
+		$hash{$gene}->[2] = $count;
+	}
+	elsif($i >88+1554*3){
+		last;
+	}
+}
+
+
+
+open FILE2, ">",$mm10_table;
+print FILE2 "Gene\tM\tRM\tMR\n";
+while(my ($key,$value) = each %hash){
+	print FILE2 "$key\t$value->[0]\t$value->[1]\t$value->[2]\n";
+
+}
+
+
+
+open FILE, $rn6;
+my %rn6;
+$i = 0;
+while(<FILE>){
+	chomp;
+	$i++;
+	if($i >=86 && $i < 86+18615){
+		my ($gene,$count) = split /\s+/;
+		$rn6{$gene}->[0] = $count;
+	}
+	elsif($i >= 87+18615 && $i < 87+18615*2 ){
+		my ($gene,$count) = split /\s+/;
+		$rn6{$gene}->[1] = $count;
+	}
+	elsif($i >= 88+18615*2 && $i < 88+18615*3 ){
+		my ($gene,$count) = split /\s+/;
+		$rn6{$gene}->[2] = $count;
+	}
+	elsif($i >88+18615*3){
+		last;
+	}
+}
+
+
+
+open FILE2, ">",$rn6_table;
+print FILE2 "Gene\tR\tRM\tMR\n";
+while(my ($key,$value) = each %rn6){
+	print FILE2 "$key\t$value->[0]\t$value->[1]\t$value->[2]\n";
+
+}

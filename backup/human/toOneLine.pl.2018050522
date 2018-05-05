@@ -1,0 +1,10 @@
+#!/usr/bin/perl
+open FILE, '/home/longyk/human/chr21.fasta';
+$_ = <FILE>;
+my $sequence;
+while (<FILE>) {
+    chomp $_;
+    $sequence .= $_;
+}
+open FILE2, '>/home/longyk/human/chr21.fa';
+print FILE2 "$sequence";

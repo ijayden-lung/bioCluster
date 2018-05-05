@@ -1,0 +1,43 @@
+#!/bin/bash
+
+
+##################### UNIQUE ###################################
+
+######Generat FeatureCounts Table
+mouIn="log_featureCounts_multi_mm10"
+ratIn="log_featureCounts_multi_rn6"
+mouCount="table_mm10_multi_featureCounts.tsv"
+ratCount="table_rn6_multi_featureCounts.tsv"
+perl /data1/lyk/four_mis/ASSIGN/generate_fc_table.pl $mouIn $ratIn $mouCount $ratCount
+
+mouNor="table_norm_mm10_multi.tsv"
+ratNor="table_norm_rn6_multi.tsv"
+
+perl /data1/lyk/four_mis/ASSIGN/normlize_gene_count.pl $mouCount $ratCount $mouNor $ratNor
+
+
+########Class or Family
+mouRef="/data1/lyk/cnda/refSeq/mm10.rmsk"
+ratRef="/data1/lyk/cnda/refSeq/rn6.rmsk"
+
+##Class
+mouCls="table_class_norm_mm10_multi.tsv"
+ratCls="table_class_norm_rn6_multi.tsv"
+cls=11
+perl /data1/lyk/four_mis/ASSIGN/sort_class_rmsk.pl  $mouRef $ratRef $mouNor $ratNor $mouCls $ratCls $cls
+
+##Family
+mouFam="table_family_norm_mm10_multi.tsv"
+ratFam="table_family_norm_rn6_multi.tsv"
+cls=12
+perl /data1/lyk/four_mis/ASSIGN/sort_class_rmsk.pl  $mouRef $ratRef $mouNor $ratNor $mouFam $ratFam $cls
+
+
+###HeatMap
+classPDF="mm10_class_enrich_multi.pdf"
+classMain="mm10 repClass Multi"
+familyPDF="mm10_family_enrich_multi.pdf"
+familyMain="mm10 repFamily Multi"
+namePDF="mm10_name_multi.pdf"
+nameMain="mm10_repName Multi"
+/data1/lyk/four_mis/ASSIGN//heatmap.r "$mouCls" "$classPDF" "$classMain" "$mouFam" "$familyPDF" "$familyMain" "$mouNor" "$namePDF" "$nameMain"

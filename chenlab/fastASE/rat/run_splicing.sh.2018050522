@@ -1,0 +1,17 @@
+#!/bin/bash
+#PBS -q batch
+#PBS -N SPLICING
+#PBS -l nodes=1:ppn=1
+#PBS -j oe 
+#PBS -l walltime=100:00:00
+#PBS -V
+
+echo `date`
+echo "staring"
+cd /home/lyk/data1/chenlab/fastASE/rat/
+sample_list="sample_list"
+gtf="/home/lyk/data1/cnda/ensembl/rn6.ensemblv90.nopsuedo.gtf"
+
+../fastASE --sampleList "$sample_list" --gtf "$gtf" --libType fr-secondstrand
+echo "finished"
+echo `date`

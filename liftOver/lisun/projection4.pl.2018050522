@@ -1,0 +1,154 @@
+#!/usr/bin/perl -w
+#PBS -q batch
+#PBS -N Projection
+#PBS -l nodes=1:ppn=1
+#PBS -o Log.projection
+#PBS -j oe 
+#PBS -l walltime=07:30:00
+#PBS -l cput=24:00:00  
+#PBS -l mem=50gb
+#PBS -M longyk@mail.sustc.edu.cn
+#PBS -m e
+#PBS -l host=compute-0-5
+#
+use List::Util qw(first max maxstr min minstr reduce shuffle sum);
+my ($liftover,$reference,$file) = @ARGV;
+#open LIFTOVER, "awk '(\$7 == \"+\"){print}' test.mm102rn6 |";
+#open REFER,    "awk '(\$7 == \"+\"){print}' test.rn6 |";
+#open FILE, '>mVSr.ort';
+open LIFTOVER, $liftover;
+open REFER ,   $reference;
+open FILE,     $file;
+
+@liftover = <LIFTOVER>;
+@reference = <REFER>;
+
+my $min_hangout = 0.2;
+
+my $j=0;
+for(my $i=0;$i<=$#liftover;){
+	my ($chr1,undef,undef,$str1,$end1,undef,undef,undef,undef,$gene1,undef,$transcript1,undef,$exon1) = split /\s+/, $liftover[$i];
+	my ($chr2,undef,undef,$str2,$end2,undef,undef,undef,undef,$gene2,undef,$transcript2,undef,$exon2) = split /\s+/, $reference[$j];
+	while($chr1 ne $chr2){
+		my ($chr_1) = split /\s+/,$liftover[$i-1];
+		my ($chr_2) = split /\s+/,$reference[$j-1];
+		if($chr1 eq $chr_1 && $chr2 ne $chr_2){
+			$i++;
+			($chr1,undef,undef,$str1,$end1,undef,undef,undef,undef,$gene1,undef,$transcript1,undef,$exon1) = split /\s+/,$liftover[$i];
+			last if ($i>=$#liftover);
+		}
+		elsif($chr1 ne $chr_1 && $chr2 eq $chr_2){
+			$j++;
+			($chr2,undef,undef,$str2,$end2,undef,undef,undef,undef,$gene2,undef,$transcript2,undef,$exon2) = split /\s+/,$reference[$j];	
+			last if ($j>=$#reference);
+		}
+		else{
+		}
+	}
+
+
+	while(($str1-$str2+1)/($end2-$str2+1)>$min_hangout || ($str2-$str1+1)/($end1-$str1+1)>$min_hangout ){
+		if(($str1-$str2+1)/($end2-$str2+1)>$min_hangout){
+			$j++;
+			($chr2,undef,undef,$str2,$end2,undef,undef,undef,undef,$gene2,undef,$transcript2,undef,$exon2) = split /\s+/,$reference[$j];
+			last if ($j>=$#reference);
+			while($chr1 ne $chr2){
+				$i++;	
+				($chr1,undef,undef,$str1,$end1,undef,undef,undef,undef,$gene1,undef,$transcript1,undef,$exon1) = split /\s+/,$liftover[$i];
+				last if ($i>=$#liftover);
+			}
+		}
+
+		elsif(($str2-$str1+1)/($end1-$str1+1)>$min_hangout){
+			$i++;
+			($chr1,undef,undef,$str1,$end1,undef,undef,undef,undef,$gene1,undef,$transcript1,undef,$exon1) = split /\s+/,$liftover[$i];
+			last if ($i>=$#liftover);
+			while($chr1 ne $chr2){
+				$j++;
+				($chr2,undef,undef,$str2,$end2,undef,undef,undef,undef,$gene2,undef,$transcript2,undef,$exon2) = split /\s+/,$reference[$j];	
+				last if ($j>=$#reference);
+			}
+		}
+	}
+
+
+	my $strshift;
+	my $endshift;
+	my $k = 1;
+	$strshift = $str1-$str2;
+	$endshift = $end1-$end2;
+	my %hash2;
+	$hash2{$transcript2} ="$gene2\t$transcript2\t$exon2\t$strshift\t$endshift\t1:1\t$gene1\t$transcript1\t$exon1\t$str2\t$end2\t$str1\t$end1\n";
+	#$hash2{$transcript2} ="$gene2\t$transcript2\t$exon2\t$strshift\t$endshift\t1:1\t$gene1\t$transcript1\t$exon1\n";
+	last if $j >= $#reference;
+	($chr,undef,undef,$str,$end,undef,undef,undef,undef,$gene,undef,$transcript,undef,$exon) = split /\s+/,$reference[$j+$k];
+	while(($end-$end1+1)<$min_hangout*($end-$str+1) && $chr eq $chr1){
+		$strshift = $str1-$str;
+		$endshift = $end1-$end;
+		#$hash2{$transcript} .= "$gene\t$transcript\t$exon\t$strshift\t$endshift\t1:1\t$gene1\t$transcript1\t$exon1\n";
+		$hash2{$transcript} .= "$gene\t$transcript\t$exon\t$strshift\t$endshift\t1:1\t$gene1\t$transcript1\t$exon1\t$str\t$end\t$str1\t$end1\n";
+		$k++;
+		last if  ($j+$k)<=$#reference;
+		($chr,undef,undef,$str,$end,undef,undef,undef,undef,$gene,undef,$transcript,undef,$exon) = split /\s+/,$reference[$j+$k];
+	}
+
+	my %hash1;
+	my $m =1;
+	while(my($key,$value) = each %hash2){
+		$hash1{$key.$transcript1} = $value;
+		next if $i >= $#liftover;
+		my @splice = split /\n/,$value;
+		foreach my $splice (@splice){
+			my ($gene2,$transcript2,$exon2,$strshift,$endshift,$rela,undef,undef,undef,$str2,$end2) = split /\t/,$splice;
+			#$end2 = $end1-$endshift;
+			#$str2 = $str1-$strshift;
+			my $l = 1;
+			last if $i >= $#liftover;
+			($chr,undef,undef,$str,$end,undef,undef,undef,undef,$gene,undef,$transcript,undef,$exon) = split /\s+/,$liftover[$i+$l];
+			while(($end-$end2+1)<$min_hangout*($end-$str+1) && $chr2 eq $chr){
+				$strshift = $str-$str2;
+				$endshift = $end-$end2;
+				if(($str2-$str+1)/($end-$str+1)<$min_hangout){
+					$hash1{$key.$transcript} .= "$gene2\t$transcript2\t$exon2\t$strshift\t$endshift\t1:1\t$gene\t$transcript\t$exon\n";
+				}
+				$l++;
+				last if ($i+$l)>$#liftover;
+				($chr,undef,undef,$str,$end,undef,undef,undef,undef,$gene,undef,$transcript,undef,$exon) = split /\s+/,$liftover[$i+$l];
+			}
+			$m = ($l > $m) ? $l : $m;
+		}
+
+	}
+
+	foreach  my $key (sort{$a cmp $b} keys  %hash1){
+		my $value = $hash1{$key};
+		my %exon1;
+		my %exon2;
+		foreach my $splice (split /\n/,$value){
+			my ($exon2,$exon1) = (split /\t/,$splice)[2,8];
+			$exon1{$exon1} = undef;
+			$exon2{$exon2} = undef;
+		}
+		my $num1 = keys %exon1;
+		my $num2 = keys %exon2;
+		my $gcd = gcd($num1,$num2);
+		my $r1 = $num1/$gcd;
+		my $r2 = $num2/$gcd;
+		$value  =~ s/1:1/$r2:$r1/g;
+		print FILE $value;
+	}
+	$j += $k;
+	$i += $m;
+	last if ($j>$#reference);
+}
+
+
+sub gcd{
+	my ($a, $b) = @_;
+	($a,$b) = ($b,$a) if $a > $b;
+	while ($a) {
+	    ($a, $b) = ($b % $a, $a);
+	}
+	return $b;
+}
+

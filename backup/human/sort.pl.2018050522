@@ -1,0 +1,18 @@
+#!/user/bin/perl
+open FILE2, '/2_disk/longyk/human/samfile/chr21.sam';
+
+####initialize
+$HQ = <FILE2>;
+$SQ = <FILE2>;
+$PG = <FILE2>;
+for(<FILE2>){
+    chomp $_;
+    @sam = split /\t/;
+    my $location = $sam[3];
+    $hash{$_} = $location;
+}
+open FILE3, '>/2_disk/longyk/human/sortedsam/chr21.sam';
+print FILE3 "$HQ$SQ$PG";
+foreach my $key(sort {$hash{$a} <=> $hash{$b}} keys %hash){
+    print FILE3 "$key\n";
+}

@@ -1,0 +1,186 @@
+#!/user/bin/perl
+use Time::HiRes qw/time/;
+my $t1 = time();
+open FILE1,   '/2_disk/longyk/human/lastColumn.txt';
+open FILE2,   '/2_disk/longyk/human/location.txt';
+open BASENUM, '/2_disk/longyk/human/baseNum.txt';
+open REF, '/2_disk/longyk/human/chr21.fa';
+my $L = <FILE1>;  ###this is the whole chromsome without N and atcg;
+my @location = <FILE2>;###this is fm index.
+my @baseInfo = <BASENUM>;  ###this is the base information.
+my $reference = <REF>; 
+close FILE1;
+close FILE2;
+close BASENUM;
+close REF;
+my $t2   = time();
+my $time = $t2 - $t1;
+print "time1: $time\n";
+
+###这里是计算Tally，分别计算ACGT。
+open TALLYA, '/2_disk/longyk/human/A';
+@A = <TALLYA>;
+close TALLYA;
+open TCLLYC, '/2_disk/longyk/human/C';
+@C = <TCLLYC>;
+close TCLLYC;
+open TGLLYG, '/2_disk/longyk/human/G';
+@G = <TGLLYG>;
+close TGLLYG;
+open TTLLYT, '/2_disk/longyk/human/T';
+@T = <TTLLYT>;
+close TTLLYT;
+
+my $SN = $baseInfo[0];
+chomp $SN;
+my $LN = $baseInfo[5];
+chomp $LN;
+
+#open FILE,  '/1_disk/public_resources/jiankuihe-exome-1.fq';
+open FILE,  '/2_disk/longyk/human/smallreads.fq';
+open FILE2, '>/2_disk/longyk/jkhe.sam';
+print FILE2
+    "\@HD\tVN:1.0\tSO:unsorted\n\@SQ\tSN:$SN\tLN:$LN\n\@PG\tID:bowtie2\tPN:bowtie2\tVN:2.1.0\n";
+my $t3 = time();
+$time = $t3 - $t2;
+print "time2: $time\n";
+my $j = 0;
+###these flag are constant.
+my $rnext = "*";
+my $pnext = "0";
+my $tlen  = "0";
+
+while (<FILE>) {
+    chomp $_;
+    if ( $j % 4 == 0 ) {
+	$qname = substr( $_, 1 );
+    }
+    elsif ( $j % 4 == 1 ) {
+	$seq      = $_;
+	$reversed = reverse $seq;
+	$reversed =~ tr/ATCG/TAGC/;
+	$seqlength = length $seq;
+	$pos1      = &bwt2($seq);
+    }
+    elsif ( $j % 4 == 3 ) {
+	$qual = $_;
+	if ($pos1>0) {
+	    $flag  = 0;
+	    $mapq  = 42;
+	    $cigar = $seqlength . "M";
+	    print FILE2 "$qname\t$flag\t$SN\t$pos1\t$mapq\t$cigar\t$rnext\t$pnext\t$tlen\t$seq\t$qual\n";
+	}
+	else {
+	    $pos2 = &bwt2($reversed);
+	    if ($pos2>0) {
+		$flag  = 16;
+		$mapq  = 42;
+		$cigar = $seqlength . "M";
+		$qual  = reverse $qual;
+		print FILE2 "$qname\t$flag\t$SN\t$pos2\t$mapq\t$cigar\t$rnext\t$pnext\t$tlen\t$reversed\t$qual\n";
+	    }
+	}
+    }
+    $j++;
+}
+close FILE;
+close FILE2;
+my $t4 = time();
+$time = $t4 - $t3;
+print "time3: $time\n\n";
+
+
+
+sub bwt2 {
+    my $sequ       = $_[0];
+    my $sequlength = length $sequ;
+    my $half      = int( $sequlength / 2 );  ##返回整數部分。
+    my $seq1      = substr( $sequ, 0, $half );
+    my $seq2      = substr( $sequ, $half );
+    my $locat = 0 ;
+    my @result1 = ();
+    @result1 = &swtN($seq1);
+    foreach my $e (@result1) {
+	my $Rev = substr($reference,$e+$half-1,$sequlength-$half);
+	my $mismatch = 0;
+	$locat = 0 ;
+	for(my $kk=0;$kk<$sequlength-$half;$kk++){
+	    if(substr($Rev,$kk,1) ne substr($seq2,$kk,1)){
+		if(substr($seq2,$kk,1) ne "N"){
+		    $mismatch++;
+		}
+	    }
+	}
+	
+	if ($mismatch < 2){
+	    $locat = $e;  
+	    last;
+	}
+    }
+    if($locat == 0){
+	@result1 = ();
+	@result1 = &swtN($seq2);  
+	foreach my $e2 (@result1) {
+	    my $Revf = substr($reference,$e2-$half-1,$half);
+	    my $mismatch = 0;
+	    $locat = 0 ;
+	    for(my $kk=0;$kk<$half;$kk++){
+		if(substr($Revf,$kk,1) ne substr($seq1,$kk,1)){
+		    if(substr($seq1,$kk,1) ne "N"){
+			$mismatch++;
+		    }
+		}
+	    }
+	    if ($mismatch < 2){
+		$locat = $e2-$half;  
+		last;
+	    }
+	}
+    }
+    return $locat;   ###这是不完整的，我好困，要睡觉了，以后接着做吧。
+}
+
+sub swtN {
+    my $SEQ      = $_[0];
+    my @D        = split( /N/, $SEQ );
+    my $LENG     = length $SEQ;
+    my $long     = 0;
+    my @LOC      = ();
+    my $bigCount = 0;
+    foreach my $ele (@D) {
+	my $len = length $ele;
+	if ( $len > 10 ) {    ###片段长度大于10才开始。
+	    my @B = &bwt($ele);    ###@B是片段位置的list；
+	    foreach my $e1 (@B) {
+		$e1 -= $long;
+	    }
+	    push( @LOC, @B );
+	    if ( $bigCount > 0 )
+	    { ###問題就出在這裏；如果一開始就是小於5的片段的話，就會出錯。//問題已經得到解決了。
+		my %count;
+		@LOC = grep { ++$count{$_} >= 2; } @LOC;
+	    }
+	    $bigCount++;
+	}
+	$long += $len + 1;    ###你這個長度計算有問題啊
+    }
+    return @LOC;
+}
+
+sub bwt {
+    my $int  = 0;
+    my $fin  = $baseInfo[5];
+    my $test = $_[0];
+    my @LL   = ();
+    for ( my $i = 1 ; $i <= length $test ; $i++ ) {
+	my $next  = substr( $test, -$i,  1 );
+	my $match = substr( $L,    $int, 1 );
+	$int = $$next[$int];
+	$fin = $$next[$fin];
+    }  ##通过循环$fin - $int的值不断减少，最后在一定范围内。
+    foreach my $iii ( $int + 1 .. $fin ) {
+	push( @LL, $location[$iii] + 1 )
+	    ;    ####這裡的位置加上1變成1-based
+    }
+    return @LL;
+}

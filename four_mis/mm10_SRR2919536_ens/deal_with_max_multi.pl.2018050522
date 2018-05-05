@@ -1,0 +1,21 @@
+#!/usr/bin/perl -w
+#PBS -q batch
+#PBS -N perl
+#PBS -l nodes=1:ppn=1
+#PBS -o Log.perl
+#PBS -j oe 
+#PBS -l walltime=300:30:00
+#PBS -l cput=300:00:00  
+open FILE ,"samtools view /home/lyk/data1/four_mis/mm10_SRR2919536_ens/Aligned.sortedByCoord.out.bam | awk '{print \$1,\$5,\$12}' | ";
+my %hash;
+while(<FILE>){
+	chomp;
+	my ($read,$mapq,$NH) = split;
+	my $num = (split /:/, $NH)[2];
+	print "$_\n" if($mapq<255 && $num==1);
+	#$hash{$read}++ if ($num>1);
+}
+
+while(my ($read,$count) = each %hash){
+	print "$read\t$count\n";
+}

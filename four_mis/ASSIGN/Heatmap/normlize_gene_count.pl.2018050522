@@ -1,0 +1,118 @@
+#!/usr/bin/perl -w
+use List::Util qw(first max maxstr min minstr reduce shuffle sum);
+
+my ($mouCount,$ratCount,$mouNor,$ratNor) = @ARGV;
+
+open INFO, "Final_assign_info.out";
+my @mou_sum;
+my @rat_sum;
+my $i=0;
+<INFO>;
+while(<INFO>){
+	chomp;
+	my @data = split;
+	if($i%2==0){
+		$mou_sum[$i/2] = $data[2]+$data[4]+$data[6]+$data[8]+$data[10]+$data[12];
+	}
+	else{
+		$rat_sum[int($i/2)] = $data[2]+$data[4]+$data[6]+$data[8]+$data[10]+$data[12];
+	}
+	$i++;
+}
+
+######Delete Class or Family
+my %delete;
+open FILE,"Not_fre_rmsk.txt";
+while(<FILE>){
+	chomp;
+	$delete{$_} = undef;
+}
+
+open FILE,"/data1/lyk/cnda/refSeq/mm10.rmsk";
+<FILE>;
+my %del_nam_mou;
+while(<FILE>){
+	chomp;
+	my ($repNam,$repCls,$repFam) = (split)[10..12];
+	if(exists $delete{$repCls}){
+		$del_nam_mou{$repNam} = undef;
+	}
+}
+
+open FILE,"/data1/lyk/cnda/refSeq/rn6.rmsk";
+<FILE>;
+my %del_nam_rat;
+while(<FILE>){
+	chomp;
+	my ($repNam,$repCls,$repFam) = (split)[10..12];
+	if(exists $delete{$repCls}){
+		$del_nam_rat{$repNam} = undef;
+	}
+}
+
+my $average = (sum(@mou_sum)+sum(@rat_sum))/(@mou_sum+@rat_sum);
+my @mou_sf;
+my @rat_sf;
+for(my $i=0;$i<@mou_sum;$i++){
+	$mou_sf[$i] = $mou_sum[$i]/$average;
+}
+for(my $i=0;$i<@rat_sum;$i++){
+	$rat_sf[$i] = $rat_sum[$i]/$average;
+}
+
+print "@mou_sf\t@rat_sf\n";
+
+
+open MOU, "$mouCount";
+my $mouHeader = <MOU>;
+chomp $mouHeader;
+my @mouHeader = split /\t/,$mouHeader;
+my %mouse;
+while(<MOU>){
+	chomp;
+	my @data = split;
+	for(my $i=0;$i<$#mouHeader;$i++){
+		$mouse{$data[0]}->{$mouHeader[$i+1]} = $data[$i+1]/$mou_sf[$i];
+	}
+}
+
+
+
+
+open RAT, "$ratCount";
+my $ratHeader = <RAT>;
+chomp $ratHeader;
+my @ratHeader = split /\t/,$ratHeader;
+my %rat;
+while(<RAT>){
+	chomp;
+	my @data = split;
+	for(my $i=0;$i<$#ratHeader;$i++){
+		$rat{$data[0]}->{$ratHeader[$i+1]} = $data[$i+1]/$rat_sf[$i];
+	}
+}
+
+open OUT1, ">","$mouNor";
+print OUT1 "$mouHeader\n";
+while(my ($key,$val) = each %mouse){
+	if (!exists $del_nam_mou{$key}){
+		print OUT1 "$key";
+		for(my $i=1;$i<@mouHeader;$i++){
+			print OUT1 "\t$val->{$mouHeader[$i]}";
+		}
+		print OUT1 "\n";
+	}
+}
+
+
+open OUT2, ">","$ratNor";
+print OUT2 "$ratHeader\n";
+while(my ($key,$val) = each %rat){
+	if(!exists $del_nam_rat{$key}){
+		print OUT2 "$key";
+		for(my $i=1;$i<@ratHeader;$i++){
+			print OUT2 "\t$val->{$ratHeader[$i]}";
+		}
+		print OUT2 "\n";
+	}
+}

@@ -1,0 +1,41 @@
+#!/usr/bin/perl -w
+
+use File::Basename;
+
+
+foreach my $file(glob "/1/longyk/direct_genomics/prime/*.csv"){
+	my $newName=basename $file;
+	open FILE,$file;
+	open DEPT, ">$newName";
+	my $i = 0;
+	while (<FILE>){
+		print "$_";
+		$i++;
+		chomp;
+		if($i==1){
+			print   "$_";
+			
+			foreach my $file2(glob "/1/longyk/direct_genomics/fastq/*fastq"){
+				my $fastqName = basename $file2;
+				print ",$fastqName";
+			}		
+			print   "\n";
+			next;
+		}
+		my @data = split /\,/;
+		print   "$_";
+
+		foreach my $file2(glob "/1/longyk/direct_genomics/fastq/*fastq"){
+			my $result = readpipe("grep -c $data[1] $file2");
+			chomp $result;
+			print ",$result";
+		}
+		print   "\n";
+	}
+	close FILE;
+	close  DEPT ;
+}
+
+
+
+

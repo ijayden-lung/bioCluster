@@ -1,0 +1,70 @@
+#!/usr/bin/perl -w
+use Statistics::R;
+use List::Util qw(first max maxstr min minstr reduce shuffle sum);
+#
+#
+#
+my $R = Statistics::R->new();
+my @motif = (6,8,10);
+my @max_eff = (3,6,10);
+my @max2_eff =(2,3,4);
+
+foreach my  $motif (@motif){
+	foreach my $max_eff (@max_eff){
+		foreach my $max2_eff (@max2_eff){
+			&simulate($motif,$max_eff,$max2_eff) if $max2_eff < $max_eff;
+		}
+	}
+}
+sub simulate{
+##### Initial the pool
+	my ($motif,$max_eff,$max2_eff) = @_;
+	my @effect = (1)x($motif+1);
+	$effect[-1] = $max_eff;
+	$effect[-2] = $max2_eff;
+	print "@effect\n";
+	my @array;
+	for(my $i=0;$i<=$motif;$i++){
+		$R->run("p <- dbinom($i,$motif,0.25)");
+		$array[$i] = $R->get('p');
+	}
+
+	my @result;
+	my @per_max;
+	my @per_max2;
+
+	for (my $time=0;$time<20;$time++){
+		my $sum = 0;
+		for (my $i=0;$i< @array;$i++){
+			$sum += $effect[$i]*$array[$i];
+		}
+		$per_max[$time] = $array[-1];
+		$per_max2[$time] = $array[-2];
+		$result[$time] = $sum;
+		@array = &sum_Effect(\@array,\@effect,$sum);
+	}
+
+	open FILE, ">Simulation_$motif\_$max_eff\_$max2_eff";
+	print FILE "Pool\tSum_Effect\tMax_Eff=$max_eff\tMax2_Eff=$max2_eff\n";
+	foreach (my $i=0; $i<@result; $i++){
+		my $max = 100*$per_max[$i];
+		my $max2 =100*$per_max2[$i];
+		print FILE "$i\t$result[$i]\t$max\t$max2\n";
+	}
+}
+
+
+
+
+
+sub sum_Effect{
+	my ($arr_ref,$eff_ref,$sum) = @_;
+	my @array = @$arr_ref;
+	my @effect = @$eff_ref;
+	for (my $i=0;$i< @array;$i++){
+		$array[$i] = $effect[$i]*$array[$i]/$sum;
+	}
+	return @array;
+}
+
+

@@ -1,0 +1,58 @@
+#!/usr/bin/perl -w
+#
+#Author: lyk
+#Update: 2017/8/10
+#
+#
+use Statistics::R;
+use List::Util qw(first max maxstr min minstr reduce shuffle sum);
+use Math::Round;
+
+my ($read,$out) = ("table_norm_mefVSesc.rc","table_pval_norm_mefVSesc.rc");
+my $p = 0.5;
+open READ, $read or die "Cannot open FILE $read,$!";
+open OUT, '>',$out  or die "Cannot open FILE $out,$!";
+
+print OUT "gene_id\tMef_M_Hits\tMef_R_Hits\tMef_Bin_pvalues\tMef_Bin_qvalues\tEsc_M_Hits\tEsc_R_Hits\tEsc_Bin_pvalues\tEsc_Bin_qvalues\tFET_pvalues\tFET_qvalues\tLog2_Mef_MR\tLog2_Esc_MR\n";
+
+my $cmds = <<EOF;
+par_pvalue <- binom.test(c(par_mouse,par_rat),p=$p)\$p.value
+hyb_pvalue <- binom.test(c(hyb_mouse,hyb_rat),p=$p)\$p.value
+x = c(par_mouse,par_rat,hyb_mouse,hyb_rat)
+alle<-matrix(x, nrow=2)
+fet_pvalue <- fisher.test(alle)\$p.value
+EOF
+my $R = Statistics::R->new();
+my $header = <READ>;
+chomp $header;
+my @header = split /\t/,$header;
+while(<READ>){
+	chomp;
+	my @data = split;
+	my @mouse_es  = @data[1..3];
+	my @mouse_mef = @data[4..7];
+	my @rat_es    = @data[8..10];
+	my @rat_mef   = @data[11..14];
+	
+	my $mean_mou_esc = round(sum(@mouse_es)/(@mouse_es));
+	my $mean_mou_mef = round(sum(@mouse_mef)/(@mouse_mef));
+	my $mean_rat_esc = round(sum(@rat_es)/(@rat_es));
+	my $mean_rat_mef = round(sum(@rat_mef)/(@rat_mef));
+	
+	next if (($mean_mou_esc+$mean_mou_mef+$mean_rat_mef+$mean_rat_esc) < 40);
+	my ($Par_M_Hits,$Par_R_Hits) = ($mean_mou_esc+1,$mean_rat_esc+1);
+	my ($Hyb_M_Hits,$Hyb_R_Hits) = ($mean_mou_mef+1,$mean_rat_mef+1);
+
+	$R->set('par_mouse',$Par_M_Hits);
+	$R->set('par_rat',$Par_R_Hits);
+	$R->set('hyb_mouse',$Hyb_M_Hits);
+	$R->set('hyb_rat',$Hyb_R_Hits);
+	my $out = $R->run($cmds);
+	my $par_pvalue = $R->get('par_pvalue');
+	my $hyb_pvalue = $R->get('hyb_pvalue');
+	my $fet_pvalue = $R->get('fet_pvalue');
+	my $log2_hyb_mr = log($Hyb_M_Hits/$Hyb_R_Hits)/log(2);
+	my $log2_par_mr = log($Par_M_Hits/$Par_R_Hits)/log(2);
+	print OUT "$data[0]\t$Hyb_M_Hits\t$Hyb_R_Hits\t$hyb_pvalue\t0\t$Par_M_Hits\t$Par_R_Hits\t$par_pvalue\t0\t$fet_pvalue\t0\t$log2_hyb_mr\t$log2_par_mr\n";
+}
+

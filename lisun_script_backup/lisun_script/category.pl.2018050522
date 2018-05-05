@@ -1,0 +1,93 @@
+#!/usr/bin/perl -w
+#Categorize inheritance for each gene
+#Updated 2017/04/30
+use autodie;
+my ($input,$output,$type_info, $threshold) = @ARGV;
+open FPKM, $input; #"/home/lyk/Gra_Pro/lisun_script/table_QC_filter_dominant.tsv");
+open OUTPUT,'>',$output;
+open TYPE, '>>' ,$type_info;
+
+my $header = <FPKM>;
+chomp $header;
+print OUTPUT "$header\tType_RM\tType_MR\tType_Mock\n";
+
+
+my @type_count;
+my @area_count;
+my @type = qw /Conserved Mouse_dominant Rat_dominant Overdominant Underdominant Additive/;
+my @area = qw /area1 area2 area3 area4 area5 area6/;
+my @sample = qw /RM MR MOCK/;
+while($line=<FPKM>){
+	chomp($line);
+	@data=split(/\t/,$line);
+	print OUTPUT "$line";
+	for(my $i=2;$i<@data;$i+=2){
+		my $x=$data[$i];
+		my $y=$data[$i+1];
+		if(abs($x)<=$threshold && abs($y)<=$threshold){
+			print OUTPUT "\t$type[0]";
+			$type_count[($i-2)/2]->{$type[0]}++;
+		}
+		elsif(abs($x)<=$threshold && abs($y)>$threshold){
+			print OUTPUT "\t$type[1]";
+			$type_count[($i-2)/2]->{$type[1]}++;
+			if($y>$threshold){
+				$area_count[($i-2)/2]->{$area[0]}++;
+			}else{
+				$area_count[($i-2)/2]->{$area[1]}++;
+			}
+		}
+		elsif(abs($x)>$threshold && abs($y)<=$threshold){
+			print OUTPUT "\t$type[2]";
+			$type_count[($i-2)/2]->{$type[2]}++;
+			if($x<$threshold){
+				$area_count[($i-2)/2]->{$area[2]}++;
+			}else{
+				$area_count[($i-2)/2]->{$area[3]}++;
+			}
+		}
+		elsif($x>$threshold && $y>$threshold){
+			print OUTPUT "\t$type[3]";
+			$type_count[($i-2)/2]->{$type[3]}++;
+		}
+		elsif($x<-$threshold && $y<-$threshold){
+			print OUTPUT "\t$type[4]";
+			$type_count[($i-2)/2]->{$type[4]}++;
+		}
+		else{
+			print OUTPUT "\t$type[5]";
+			$type_count[($i-2)/2]->{$type[5]}++;
+			if($x<-$threshold && $y>$threshold){
+				$area_count[($i-2)/2]->{$area[4]}++;
+			}
+			else{
+				$area_count[($i-2)/2]->{$area[5]}++;
+			}
+		}
+	}
+	print OUTPUT "\n";
+
+}
+
+print TYPE "For threshold = $threshold\n";
+print TYPE "Type_info\t",join "\t",@type,"\n";
+#print TYPE "Type_info\tConversed\tMouse_dominant\tRat_dominant\tOverdominant\tUnderdominant\tAdditive\n";
+for(my$i=0;$i<@type_count;$i++){
+	print TYPE "$sample[$i]";
+	foreach my $type (@type){
+		print TYPE "\t$type_count[$i]->{$type}";
+	}
+	print TYPE "\n";
+}
+
+print TYPE "\nArea_info\t",join "\t" , @area,"\n";
+
+for(my$i=0;$i<@area_count;$i++){
+	print TYPE "$sample[$i]";
+	foreach my $area (@area){
+		print TYPE "\t$area_count[$i]->{$area}";
+	}
+	print TYPE "\n";
+}
+
+print TYPE "\n\n";

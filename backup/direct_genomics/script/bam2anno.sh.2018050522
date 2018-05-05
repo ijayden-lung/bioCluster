@@ -1,0 +1,27 @@
+#!/bin/bash
+
+for i in /1/longyk/direct_genomics/sam/*.sort
+do
+	
+	j=${i%\/*}
+	k=${i%.*}
+	mpileup=${j%\/*}/mpileup/new/${k##*\/}.mpileup
+	vcf=${j%\/*}/vcf3/${k##*\/}.vcf
+	avinput=${vcf%.*}.avinput
+	anno=${vcf%\/*}/annovar_out/${k##*\/}
+	#echo input file: $i
+	#echo 
+	#samtools mpileup -BQ 30 -d 500000 -f /1/public_resources/hg19.fa $i >$mpileup
+	#echo input file $mpileup
+	#echo
+	#java -jar /1/longyk/VarScan.v2.3.9.jar mpileup2cns $mpileup  --min-coverage 999 --min-reads2 3 --min-avg-qual 30 --min-var-freq 0.003   --p-value 0.01 --output-vcf 1 --variants >$vcf
+	
+	#use linux pipe command
+
+	#samtools mpileup -BQ 30 -d 500000 -f /1/public_resources/hg19.fa M_S1_L001.sort | java -jar /1/longyk/VarScan.v2.3.9.jar mpileup2cns -min-coverage 999 --min-reads2 3 --min-var-freq 0.003   --p-value 0.01 --output-vcf 1 --variants >$vcf
+
+	
+	#convert2annovar.pl --format vcf4 $vcf  -includeinfo -outfile  $avinput
+
+	table_annovar.pl $avinput /1/longyk/annovar/humandb/ -buildver hg19 -out $anno -remove -otherinfo -protocol refGene,cosmic79,1000g2015aug_all,1000g2015aug_eas,snp138,clinvar_20160302 -operation g,f,f,f,f,f -nastring .
+done

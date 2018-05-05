@@ -1,0 +1,24 @@
+#!/usr/bin/perl -w
+###Update 2017/05/02
+#
+my %hash;
+open FILE, "table_FPKM.tsv";
+<FILE>;
+while(<FILE>){
+	chomp;
+	my ($gene_id,$gene_name) = split;
+	$hash{$gene_name} = $gene_id;
+}
+
+open FILE2, "/home/lisun/opt/perl/read_count/table_FPKM.tsv";
+my $header = <FILE2>;
+open FILE3, ">table_FPKM2.tsv";
+print FILE3 "gene_id\tgene_name\tPar_Mouse_FPKM\tPar_Rat_FPKM\tRM_Mouse_FPKM\tRM_Mouse+C_FPKM\tRM_Rat_FPKM\tRM_FPKM\tMR_Mouse_FPKM\tMR_Mouse+C_FPKM\tMR_Rat_FPKM\tMR_FPKM\tMOCK_Mouse_FPKM\tMOCK_Mouse+C_FPKM\tMOCK_Rat_FPKM\tMOCK_FPKM\n";
+#print FILE3 $header;
+while(<FILE2>){
+	chomp;
+	my(undef,$gene_name,$par_m,$par_r,$rm,$mr,$mock,$rm_m,$rm_r,$mr_m,$mr_r,$mock_m,$mock_r) = split;
+	if(exists $hash{$gene_name}){
+		print FILE3 "$hash{$gene_name}\t$gene_name\t$par_m\t$par_r\t$rm_m\t0\t$rm_r\t$rm\t$mr_m\t0\t$mr_r\t$mr\t$mock_m\t0\t$mock_r\t$mock\n";
+	}
+}

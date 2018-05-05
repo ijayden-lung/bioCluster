@@ -1,0 +1,10 @@
+#!/usr/bin/perl -w
+open FILE, "samtools view ASSIGN/mm10_SRR2919536_ens/Aligned.sortedByCoord.out.bam | awk '(\$5 < 255){\$12 = \"NH:i:1\";split(\$13,a,\":\");\$1=\$1\".\"a[3]; print}' |";
+while(<FILE>){
+	my @data = split;
+	my (undef,undef,$hi) =split /\:/,$data[12];
+	#$data[0] .= ".$hi";
+	#$data[11] = "NH:i:1";
+	print join "\t", @data,"\n";
+	last;
+}

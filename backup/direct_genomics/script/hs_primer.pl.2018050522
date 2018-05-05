@@ -1,0 +1,37 @@
+#!/usr/bin/perl -w
+my $dirname = "/1/longyk/direct_genomics/primer/bowtie_out/";
+my @filename = ("tube1.sam","tube2.sam","tube3.sam", "tube4.sam");
+my $dirname2 = "/1/longyk/direct_genomics/primer/hs_out/";
+
+open FILE, "/1/longyk/direct_genomics/cosmic_hotspot_2751.txt";
+
+my %hash;
+while(<FILE>){
+	chomp;
+	my @data = split;
+	my @locate = ($data[0],$data[1]);
+	$hash{$data[-1]} = \@locate;
+}
+
+
+
+foreach my $filename (@filename){
+	open $filename, "$dirname$filename";
+	my ($newfile) = split /\./,$filename;
+	open FILE, ">$dirname2$newfile";
+	while(<$filename>){
+		my($primer,undef,$chr,$pos1,undef,$cigar,undef,$pos2) = split;
+		if($pos1>$pos2){
+			chop $cigar;
+			$pos1 += $cigar - 1;
+			while((my $key, $value) = each %hash){
+				my @locate = @$value;
+				if($locate[0] eq $chr && $pos1>=$locate[1] && $pos2<=$locate[1]){
+					print FILE "$key ";	
+				}
+
+			}
+		}
+		print FILE "\n";
+	}
+}
