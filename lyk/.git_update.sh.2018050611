@@ -1,0 +1,5 @@
+#!/bin/bash
+
+cd ~/data1/.bak/
+git add .
+git push -u origin master
