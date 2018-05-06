@@ -1,2 +1,2 @@
 # bioCluster
-To backup scritps
+To backup scritps from bioCluster
