@@ -1,0 +1,6 @@
+#!/bin/bash
+
+cd ~/data1/.bak/
+git add .
+git commit -m 'Auto Backup'
+git push -u origin master
