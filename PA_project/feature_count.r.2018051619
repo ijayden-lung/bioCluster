@@ -1,0 +1,23 @@
+#!/home/lisun/prog/R/bin/Rscript
+#PBS -q batch
+#PBS -N featureCounts
+#PBS -l nodes=1:ppn=8
+#PBS -j oe 
+#PBS -l walltime=08:00:00
+#PBS -V
+library(Rsubread)
+
+args<-commandArgs(T)
+
+samples='/home/wanghao/data1/project3/tophat/MCF7_ssf30_6h_1/accepted_filtered2.bam'
+files=c("/home/lyk/data1/cnda/ensembl/hg38.ensemblv92.nopsuedo.gtf","FC_counts","FC_annotation.txt","FC_stat.txt",8)
+
+
+fc_PE <- featureCounts(samples,annot.ext=files[1],isGTFAnnotationFile=TRUE,GTF.featureType="exon",GTF.attrType="gene_id",useMetaFeatures=TRUE,isPairedEnd=TRUE, requireBothEndsMapped=TRUE,strandSpecific=2, nthreads=files[5])
+
+
+
+write.table(fc_PE$counts,files[2],quote=FALSE,sep='\t',row.names=TRUE,col.names=NA)
+write.table(fc_PE$stat,files[3],quote=FALSE,sep='\t',row.names=TRUE,col.names=NA)
+write.table(fc_PE$annotation,files[4],quote=FALSE,sep='\t',col.names=NA,row.names=TRUE)
+
