@@ -1,0 +1,8 @@
+#!/bin/bash
+
+
+#mageck test -k sample.txt -t HL60.final,KBM7.final -c HL60.initial,KBM7.initial  -n demo
+# or
+mageck test -k input.tsv -t baseline1,baseline2 -c library  -n deplete  --pdf-report --normcounts-to-file
+#Rscript demo.R
+
