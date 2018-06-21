@@ -1,0 +1,14 @@
+#!/bin/bash
+#PBS -q batch
+#PBS -N FASTQC
+#PBS -l nodes=2:ppn=4
+#PBS -j oe 
+#PBS -l walltime=08:00:00
+cd ~/data1/gaoxin/
+for i in Ctrl_AGO2.fastq
+do
+	fastqc -t 8 -o FASTQC_OUT  $i
+done
+
+
+

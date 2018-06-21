@@ -1,0 +1,14 @@
+#!/usr/bin/perl -w
+
+open COL,"Ctrl_AGO2_bound_sRNA.read.counts";
+open FQ,">Ctrl_AGO2.fastq";
+while(<COL>){
+	chomp;
+	my ($num,$seq) = split;
+	for(my$i=0;$i<$num;$i++){
+		print FQ "\@read $.:$i\n";
+		print FQ "$seq\n";
+		print FQ "\+\n";
+		print FQ "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n";
+	}
+}

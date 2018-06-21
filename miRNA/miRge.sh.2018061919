@@ -1,0 +1,10 @@
+#!/bin/bash
+#PBS -q batch
+#PBS -N miRge
+#PBS -l nodes=1:ppn=4
+#PBS -j oe 
+#PBS -l walltime=08:00:00
+
+cd ~/data1/miRNA/
+
+miRge2.0 annotate -s SRR546155.fastq -pb /share/apps/genomics/approved/bowtie-1.2.2  -lib /home/lyk/data1/cnda/miRNA -sp mouse -ad ATCTCGTATGCCGTCTTCTGCTTGAAAAA -cpu 4

@@ -1,0 +1,3 @@
+#!/bin/bash
+
+miRge2.0 annotate -s SRR546155.fastq -pb /share/apps/genomics/approved/bowtie-1.2.2  -lib /home/lyk/data1/cnda/miRNA -sp mouse -ad ATCTCGTATGCCGTCTTCTGCTTGAAAAA
