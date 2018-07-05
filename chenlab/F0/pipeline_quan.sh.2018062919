@@ -1,0 +1,30 @@
+#!/bin/bash
+#PBS -q batch
+#PBS -N featureCounts
+#PBS -l nodes=2:ppn=4
+#PBS -j oe 
+#PBS -l walltime=12:00:00
+#PBS -V
+
+ctrl='ES'
+trea='EF'
+spe='rn6'
+cd ~/data1/chenlab/F0/
+c=0
+for i in /data1/lisun/fusion_cell/F0/STAR/rn6*/*sorted.bam
+do
+	sample[$c]=$i
+	((c++))
+done
+
+
+gtf="/data1/lyk/cnda/ensembl/$spe.ensemblv92.nopsuedo.gtf"
+count="FC_counts_$spe\.txt"
+stat="FC_stat_$spe\.txt"
+anno="FC_annotation_$spe\.txt"
+deseq='DESeq2/DESeq2_common_out.txt'
+pdf='DESeq2/DESeq2_common_summary.pdf'
+
+./feature_count.r $gtf $count $stat $anno 8 ${sample[@]}
+#./deseq2.r $ctrl $trea $count  $deseq $pdf
+#./add_genename.pl $spe $deseq "DESeq2/DESeq2_common_geneName.txt" $ctrl $trea
