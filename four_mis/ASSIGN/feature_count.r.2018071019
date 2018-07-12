@@ -1,0 +1,17 @@
+#!/usr/bin/Rscript
+#PBS -q batch
+#PBS -N featureCounts
+#PBS -l nodes=2:ppn=4
+#PBS -j oe 
+
+library(Rsubread)
+
+files=c("/data1/lyk/four_mis/ASSIGN/rn6_par/Aligned.sortedByCoord.out.bam","/data1/lyk/four_mis/ASSIGN/rn6_rm/Aligned.sortedByCoord.out.bam","/data1/lyk/four_mis/ASSIGN/rn6_mr/Aligned.sortedByCoord.out.bam");
+
+featureCounts(files,annot.ext="/data1/lyk/cnda/ensembl/rn6.ensemblv92.nopsuedo.gtf",isGTFAnnotationFile=TRUE,GTF.featureType="exon",GTF.attrType="gene_id",useMetaFeatures=TRUE, countMultiMappingReads=TRUE, fraction=TRUE,isPairedEnd=TRUE,requireBothEndsMapped=TRUE,nthreads=8)
+
+write.table(fc_PE$counts,"FC_counts_rn6.txt",quote=FALSE,sep='\t',row.names=TRUE,col.names=NA)
+ write.table(fc_PE$stat,"FC_stat_rn6.txt",quote=FALSE,sep='\t',row.names=TRUE,col.names=NA)
+ write.table(fc_PE$annotation,"FC_anno_rn6.txt",quote=FALSE,sep='\t',col.names=NA,row.names=TRUE)
+
+#featureCounts(files,annot.ext="/data1/lyk/cnda/refSeq/rn6.repeatMasker.gtf",isGTFAnnotationFile=TRUE,GTF.featureType="exon",GTF.attrType="gene_id",useMetaFeatures=TRUE,isPairedEnd=TRUE,requireBothEndsMapped=TRUE,nthreads=8)
